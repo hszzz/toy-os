@@ -1,6 +1,6 @@
 org 0x7c00
 
-start:
+start:				;initialize register value
 	mov ax, cs
 	mov ss, ax
 	mov ds, ax
@@ -8,8 +8,8 @@ start:
 
 	mov si, msg
 
-print:
-	mov al, [si]
+print:				;print character in msg one by one
+	mov al, [si]	;fetch the address of the register si, which is the first byte of msg
 	add si, 1
 	cmp al, 0x00
 	je last
@@ -18,12 +18,12 @@ print:
 	int 0x10
 	jmp print
 
-last:
+last:				;CPU stop
 	hlt
 	jmp last
 
 msg:
-	db 0x0a, 0x0a
+	db 0x0a, 0x0a	;0x0a = '\n'
 	db "hello toy-os"
 	db 0x0a, 0x0a
 	times 510-($-$$) db 0x00
