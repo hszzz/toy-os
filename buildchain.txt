@@ -1,3 +1,0 @@
-nasm boot.asm -o boot.bin
-bximage a.img -q -fd -size=1.44
-dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc
