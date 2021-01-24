@@ -5,6 +5,8 @@ nop
 
 define:
     BaseOfStack equ 0x7c00
+    RootEntryOffset  equ 19
+    RootEntryLength  equ 14
 
 header:
     BS_OEMName     db "hszzz"
@@ -34,20 +36,97 @@ start:
     mov es, ax
     mov sp, BaseOfStack
     
-    mov ax, 34
-    mov cx, 1
+    mov ax, RootEntryOffset
+    mov cx, RootEntryLength
     mov bx, Buf
     
     call ReadSector
     
-    mov bp, Buf
-    mov cx, 29
+    mov si, Target
+    mov cx, TarLen
+    mov dx, 0
     
+    call FindEntry
+    
+    cmp dx, 0
+    jz output
+    jmp last
+    
+output:    
+    mov bp, MsgStr
+    mov cx, MsgLen
     call Print
     
 last:
     hlt
     jmp last    
+
+; es:bx --> root entry offset address
+; ds:si --> target string
+; cx    --> target length
+;
+; return:
+;     (dx != 0) ? exist : noexist
+;        exist --> bx is the target entry
+FindEntry:
+    push di
+    push bp
+    push cx
+    
+    mov dx, [BPB_RootEntCnt]
+    mov bp, sp
+    
+find:
+    cmp dx, 0
+    jz noexist
+    mov di, bx
+    mov cx, [bp]
+    call MemCmp
+    cmp cx, 0
+    jz exist
+    add bx, 32
+    dec dx
+    jmp find
+
+exist:
+noexist:
+    pop cx
+    pop bp
+    pop di
+       
+    ret
+
+; ds:si --> source
+; es:di --> destination
+; cx    --> length
+;
+; return:
+;        (cx == 0) ? equal : noequal
+MemCmp:
+    push si
+    push di
+    push ax
+    
+compare:
+    cmp cx, 0
+    jz equal
+    mov al, [si]
+    cmp al, byte [di]
+    jz goon
+    jmp noequal
+goon:
+    inc si
+    inc di
+    dec cx
+    jmp compare
+    
+equal:
+noequal:   
+    pop ax
+    pop di
+    pop si
+    
+    ret
 
 ; es:bp --> string address
 ; cx    --> string length
@@ -111,9 +190,12 @@ read:
     
     ret
 
-MsgStr db  "Hello, TOY-OS!"    
+MsgStr db  "No LOADER ..."    
 MsgLen equ ($-MsgStr)
+Target db  "LOADER     "
+TarLen equ ($-Target)
 Buf:
     times 510-($-$$) db 0x00
     db 0x55, 0xaa
+
 
