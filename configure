@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo mkdir /mnt/hgfs/
+
 sudo apt-get install nasm
 
 sudo apt-get install bximage
