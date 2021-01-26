@@ -13,7 +13,7 @@ define:
     FatEntryLength   equ 9
 
 header:
-    BS_OEMName     db "hszzz"
+    BS_OEMName     db "hszzz.me"
     BPB_BytsPerSec dw 512
     BPB_SecPerClus db 1
     BPB_RsvdSecCnt dw 1
@@ -30,7 +30,7 @@ header:
     BS_Reserved1   db 0
     BS_BootSig     db 0x29
     BS_VolID       dd 0
-    BS_VolLab      db "toy-OS-0.01"
+    BS_VolLab      db "TOY-OS-0.01"
     BS_FileSysType db "FAT12   "
 
 start:
@@ -87,7 +87,7 @@ loading:
     pop cx
     call FatVec
     cmp dx, 0xFF7
-    jnb BaseOfLoader  	;jump Not Below
+    jnb BaseOfLoader
     add si, 512
     jmp loading
 	
@@ -124,7 +124,7 @@ FatVec:
     jz even
     jmp odd
 
-even:
+even: 
     mov dx, cx
     add dx, 1
     add dx, bx
@@ -137,7 +137,7 @@ even:
     or  dl, byte [bp]
     jmp return
     
-odd:
+odd: 
     mov dx, cx
     add dx, 2
     add dx, bx
@@ -201,7 +201,7 @@ done:
 ; cx    --> target length
 ;
 ; return:
-;     (dx !=0 ) ? exist : not exist
+;     (dx !=0 ) ? exist : noexist
 ;        exist --> bx is the target entry
 FindEntry:
     push cx
@@ -312,4 +312,3 @@ EntryItem times EntryItemLength db 0x00
 Buf:
 	times 510-($-$$) db 0x00
 	db 0x55, 0xaa
-
