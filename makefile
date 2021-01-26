@@ -7,7 +7,7 @@ LOADER_SRC := loader.asm
 LOADER_OUT := loader
 
 IMG := data.img
-IMG_PATH := /mnt/hgfs
+IMG_PATH := /mnt/
 
 RM := rm -rf
 
