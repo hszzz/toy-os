@@ -1,3 +1,6 @@
+;      0x7c00           0x7e00               0x9000         
+; stack          boot            fat table            loader
+
 org 0x7c00
 
 jmp short start
@@ -13,7 +16,7 @@ define:
     FatEntryLength   equ 9
 
 header:
-    BS_OEMName     db "hszzz.me"
+    BS_OEMName     db "HSZZZ   "
     BPB_BytsPerSec dw 512
     BPB_SecPerClus db 1
     BPB_RsvdSecCnt dw 1
