@@ -15,6 +15,8 @@ LOG_PATH := log
 BOCHS := bochs
 MKDIR := mkdir
 
+REVERSE_PATH := reverse
+
 RM := rm -fr
 
 all : $(IMG) $(BOOT_OUT) $(LOADER_OUT)
@@ -35,7 +37,8 @@ $(LOADER_OUT) : $(LOADER_SRC) $(LOADER_INC)
 	
 clean :
 	$(RM) $(IMG) $(BOOT_OUT) $(LOADER_OUT)
-	$(RM) log
+	$(RM) $(LOG_PATH)
+	$(RM) $(REVERSE_PATH)
 	
 rebuild :
 	@$(MAKE) clean
@@ -44,3 +47,7 @@ rebuild :
 bochs : all
 	$(MKDIR) $(LOG_PATH)
 	$(BOCHS) -q -f .bochsrc -log log/bochs.log
+
+reverse : $(LOADER_OUT)
+	$(MKDIR) $(REVERSE_PATH)
+	ndisasm -o 0x9000 $< > $(REVERSE_PATH)/reverse.txt
