@@ -10,6 +10,8 @@ LOADER_OUT := loader
 IMG := data.img
 IMG_PATH := /mnt/hgfs
 
+BOCHS := bochs
+
 RM := rm -fr
 
 all : $(IMG) $(BOOT_OUT) $(LOADER_OUT)
@@ -30,7 +32,12 @@ $(LOADER_OUT) : $(LOADER_SRC)
 	
 clean :
 	$(RM) $(IMG) $(BOOT_OUT) $(LOADER_OUT)
+	$(RM) log
 	
 rebuild :
 	@$(MAKE) clean
 	@$(MAKE) all
+
+bochs : all
+	mkdir log
+	$(BOCHS) -q -f .bochsrc -log log/bochs.log
