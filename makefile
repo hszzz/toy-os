@@ -10,7 +10,9 @@ LOADER_OUT := loader
 IMG := data.img
 IMG_PATH := /mnt/hgfs
 
+LOG_PATH := log
 BOCHS := bochs
+MKDIR := mkdir
 
 RM := rm -fr
 
@@ -39,5 +41,5 @@ rebuild :
 	@$(MAKE) all
 
 bochs : all
-	mkdir log
+	$(MKDIR) $(LOG_PATH)
 	$(BOCHS) -q -f .bochsrc -log log/bochs.log
