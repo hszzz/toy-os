@@ -7,13 +7,13 @@ jmp short start
 nop
 
 define:
-    BaseOfStack      equ 0x7c00
-    BaseOfLoader     equ 0x9000
-    RootEntryOffset  equ 19
-    RootEntryLength  equ 14
-    EntryItemLength  equ 32
-    FatEntryOffset   equ 1
-    FatEntryLength   equ 9
+    BaseOfStack       equ    0x7c00
+    BaseOfLoader      equ    0x9000
+    RootEntryOffset   equ    19
+    RootEntryLength   equ    14
+    EntryItemLength   equ    32
+    FatEntryOffset    equ    1
+    FatEntryLength    equ    9
 
 header:
     BS_OEMName     db "HSZZZ   "
@@ -38,45 +38,45 @@ header:
 
 start:
     mov ax, cs
-	mov ss, ax
-	mov ds, ax
-	mov es, ax
-	mov sp, BaseOfStack
+    mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov sp, BaseOfStack
 	
-	mov ax, RootEntryOffset
-	mov cx, RootEntryLength
-	mov bx, Buf
+    mov ax, RootEntryOffset
+    mov cx, RootEntryLength
+    mov bx, Buf
 	
-	call ReadSector
+    call ReadSector
 	
-	mov si, Target
-	mov cx, TarLen
-	mov dx, 0
+    mov si, Target
+    mov cx, TarLen
+    mov dx, 0
 	
-	call FindEntry
+    call FindEntry
 	
-	cmp dx, 0
-	jz output
+    cmp dx, 0
+    jz output
 	
-	mov si, bx
-	mov di, EntryItem
-	mov cx, EntryItemLength
+    mov si, bx
+    mov di, EntryItem
+    mov cx, EntryItemLength
 	
-	call MemCpy
+    call MemCpy
 	
-	mov ax, FatEntryLength
-	mov cx, [BPB_BytsPerSec]
-	mul cx
-	mov bx, BaseOfLoader
-	sub bx, ax
+    mov ax, FatEntryLength
+    mov cx, [BPB_BytsPerSec]
+    mul cx
+    mov bx, BaseOfLoader
+    sub bx, ax
 	
-	mov ax, FatEntryOffset
-	mov cx, FatEntryLength
+    mov ax, FatEntryOffset
+    mov cx, FatEntryLength
 	
-	call ReadSector
+    call ReadSector
 	
-	mov dx, [EntryItem + 0x1A]
-	mov si, BaseOfLoader
+    mov dx, [EntryItem + 0x1A]
+    mov si, BaseOfLoader
 	
 loading:
     mov ax, dx
@@ -97,11 +97,11 @@ loading:
 output:	
     mov bp, MsgStr
     mov cx, MsgLen
-	call Print
+    call Print
 	
 last:
     hlt
-	jmp last	
+    jmp last	
 
 
 ; cx --> index
@@ -263,8 +263,8 @@ noequal:
 Print:
     mov dx, 0
     mov ax, 0x1301
-	mov bx, 0x0007
-	int 0x10
+    mov bx, 0x0007
+    int 0x10
     ret
 
 ; no parameter
@@ -313,5 +313,5 @@ Target db  "LOADER     "
 TarLen equ ($-Target)
 EntryItem times EntryItemLength db 0x00
 Buf:
-	times 510-($-$$) db 0x00
-	db 0x55, 0xaa
+    times 510-($-$$) db 0x00
+    db 0x55, 0xaa
