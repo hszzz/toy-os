@@ -2,7 +2,7 @@
 DA_32		equ		0x4000
 DA_DR		equ		0x90
 DA_DRW		equ		0x90
-DA_DRWR		equ		0x93
+DA_DRWA		equ		0x93
 DA_C		equ		0x98
 DA_CR		equ		0x9A
 DA_CCO		equ		0x9C
