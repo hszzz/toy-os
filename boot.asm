@@ -1,5 +1,5 @@
-;      0x7c00           0x7e00               0x9000         
-; stack          boot            fat table            loader
+; low     <== 0x7c00 ==>    0x7e00 ==>      0x9000 ==>      high
+; |-->  stack <--|--> boot <--|--> fat table <--|--> loader <--|
 
 org 0x7c00
 
