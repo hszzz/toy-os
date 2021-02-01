@@ -10,7 +10,7 @@ GDT_ENTRY     : Descriptor  0,       0,                    0
 CODE32_DESC   : Descriptor  0,       Code32SegmentLen - 1, DA_C + DA_32
 GRAPHICS_DESC : Descriptor  0xB8000, 0x07FFF,              DA_DRWA + DA_32
 DATA32_DESC   : Descriptor  0,       DataSegmentLen - 1,   DA_DR + DA_32
-GSTACK_DESC   : Descriptor  0,       BaseOfStack,          DA_DRWA + DA_32
+GSTACK_DESC   : Descriptor  0,       TopOfStack32,         DA_DRW + DA_32
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -26,7 +26,7 @@ Data32Selector    equ    (0x0003 << 3) + SA_TIG + SA_RPL0
 GStackSelector    equ    (0x0004 << 3) + SA_TIG + SA_RPL0
 ; GDT Selector END
 
-BaseOfStack equ 0x7C00
+TopOfStack16 equ 0x7C00
 
 [section .dat]
 [bits 32]
@@ -45,7 +45,7 @@ CODE16_SEGMENT:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov sp, BaseOfStack
+    mov sp, TopOfStack16
 
    ; initialize GDT for 32 bits code segment
     mov esi, CODE32_SEGMENT
@@ -55,6 +55,11 @@ CODE16_SEGMENT:
 	; initialize DGT for data32 segment
     mov esi, DATA32_SEGMENT
     mov edi, DATA32_DESC
+    call InitDescItem
+
+    ; initialize GDT for global segment
+	mov esi, STACK32_SEGMENT
+	mov edi, GSTACK_DESC
     call InitDescItem
 
     ; initialize GDT pointer struct
@@ -83,7 +88,7 @@ CODE16_SEGMENT:
 ; esi --> code segment label
 ; edi --> descript label
 InitDescItem:
-   push eax
+    push eax
 
     mov eax, 0
     mov ax,	 cs
@@ -104,8 +109,11 @@ CODE32_SEGMENT:
     mov gs, ax
 
     ; initialize stack segment through selector
-    mov ax, GStackSelector
-    mov ss, ax
+    mov eax, GStackSelector
+    mov ss, eax
+
+    mov eax, TopOfStack32
+	mov esp, eax
 
     mov ax, Data32Selector
     mov ds, ax
@@ -160,4 +168,11 @@ end:
     ret
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
+
+[section .gs]
+[bits 32]
+STACK32_SEGMENT:
+    times 1024 * 4 db 0
+Stack32SegmentLen    equ    $ - STACK32_SEGMENT
+TopOfStack32         equ    Stack32SegmentLen - 1
 
