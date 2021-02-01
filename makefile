@@ -1,4 +1,3 @@
-
 .PHONY : all clean rebuild
 
 BOOT_SRC := boot.asm
