@@ -15,6 +15,9 @@ GSTACK_DESC   : Descriptor  0,       TopOfStack32,         DA_DRW + DA_32
 ; used in back to real mode 
 CODE16_DESC   : Descriptor  0,       0xFFFF,               DA_C
 UPDATE_DESC   : Descriptor  0,       0xFFFF,               DA_DRW
+
+; task a LDT
+TASK_A_LDT_DESC : Descriptor 0,      TaskALdtLen - 1,      DA_LDT
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -31,6 +34,8 @@ GStackSelector    equ    (0x0004 << 3) + SA_TIG + SA_RPL0
 
 Code16Selector    equ    (0x0005 << 3) + SA_TIG + SA_RPL0
 UpdateSelector    equ    (0x0006 << 3) + SA_TIG + SA_RPL0
+
+TaskALdtSelector    equ    (0x0007 << 3) + SA_TIG + SA_RPL0
 ; GDT Selector END
 
 TopOfStack16 equ 0x7C00
@@ -77,6 +82,23 @@ ENTRY_SEGMENT:
     mov esi, CODE16_SEGMENT
     mov edi, CODE16_DESC
     call InitDescItem
+
+    ; initialize LDT for Task A
+    mov esi, TASK_A_LDT_ENTRY
+    mov edi, TASK_A_LDT_DESC
+    call InitDescItem
+
+    mov esi, TASK_A_CODE32_SEGMENT
+    mov edi, TASK_A_CODE32_DESC
+    call InitDescItem
+
+    mov esi, TASK_A_DATA32_SEGMENT
+    mov edi, TASK_A_DATA32_DESC
+    call InitDescItem
+
+    mov esi, TASK_A_STACK32_SEGMENT
+    mov edi, TASK_A_STACK32_DESC
+	call InitDescItem
 
     ; initialize GDT pointer struct
     mov eax, 0
@@ -200,7 +222,14 @@ CODE32_SEGMENT:
     ;jmp	CODE32_SEGMENT
     
     ; jmp to 16 bits protected mode
-    jmp Code16Selector : 0
+    ; jmp Code16Selector : 0
+    
+    ; load LDT for task A
+	mov ax, TaskALdtSelector
+    lldt ax
+
+    ; jmp to task A
+    jmp TaskACode32Selector : 0
 
 ; ds:ebp --> string address
 ; bx     --> attribute
@@ -239,6 +268,7 @@ end:
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
+; global stack segment
 [section .gs]
 [bits 32]
 STACK32_SEGMENT:
@@ -246,3 +276,93 @@ STACK32_SEGMENT:
 Stack32SegmentLen    equ    $ - STACK32_SEGMENT
 TopOfStack32         equ    Stack32SegmentLen - 1
 
+; task A segment
+
+; task a LDT definition 
+[section .task-a-ldt]
+TASK_A_LDT_ENTRY:
+TASK_A_CODE32_DESC    : Descriptor    0,    TaskACode32SegmentLen - 1,    DA_C + DA_32
+TASK_A_DATA32_DESC    : Descriptor    0,    TaskAData32SegmentLen - 1,    DA_DR + DA_32
+TASK_A_STACK32_DESC   : Descriptor    0,    TaskAStack32SegmentLen -1,    DA_DRW + DA_32
+
+TaskALdtLen equ $ - TASK_A_LDT_ENTRY
+
+; Task A LDT selector
+; unlike GDT, the first item(index: 0) of LDT should be used
+TaskACode32Selector    equ   (0x0000 << 3) + SA_TIL + SA_RPL0
+TaskAData32Selector    equ   (0x0001 << 3) + SA_TIL + SA_RPL0
+TaskAStack32Selector   equ   (0x0002 << 3) + SA_TIL + SA_RPL0
+
+[section .task-a-data]
+[bits 32]
+TASK_A_DATA32_SEGMENT:
+    TASK_A_STRING db "task a string", 0
+    TASK_A_STRING_OFFSET equ TASK_A_DATA32_SEGMENT - $$
+TaskAData32SegmentLen equ $ - TASK_A_DATA32_SEGMENT
+
+[section .task-a-gs]
+[bits 32]
+TASK_A_STACK32_SEGMENT:
+    times 1024 db 0
+TaskAStack32SegmentLen equ $ - TASK_A_STACK32_SEGMENT
+TaskATopOfStack32      equ TaskAStack32SegmentLen - 1
+
+[section .task-a-s32]
+[bits 32]
+TASK_A_CODE32_SEGMENT:
+    mov ax, GraphicsSelector
+    mov gs, ax
+
+    mov ax, TaskAStack32Selector
+    mov ss, ax
+
+    mov eax, TaskATopOfStack32
+    mov esp, eax
+
+    mov ax, TaskAData32Selector
+    mov ds, ax
+
+    mov ebp, TASK_A_STRING_OFFSET
+    mov bx, 0x0C
+    mov dh, 14
+    mov dl, 29
+    call TaskAPrintString
+
+    jmp Code16Selector : 0
+
+; ds:ebp    --> string address
+; bx        --> attribute
+; dx        --> dh : row, dl : col
+TaskAPrintString:
+    push ebp
+    push eax
+    push edi
+    push cx
+    push dx
+    
+task_print:
+    mov cl, [ds:ebp]
+    cmp cl, 0
+    je task_end
+    mov eax, 80
+    mul dh
+    add al, dl
+    shl eax, 1
+    mov edi, eax
+    mov ah, bl
+    mov al, cl
+    mov [gs:edi], ax
+    inc ebp
+    inc dl
+    jmp task_print
+
+task_end:
+    pop dx
+    pop cx
+    pop edi
+    pop eax
+    pop ebp
+    
+    ret
+    
+TaskACode32SegmentLen   equ  $ - TASK_A_CODE32_SEGMENT
