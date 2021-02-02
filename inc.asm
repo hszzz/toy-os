@@ -17,6 +17,9 @@ SA_RPL3    equ    3
 SA_TIG    equ    0
 SA_TIL    equ    4
 
+; LDT Attribute
+DA_LDT    equ    0x82
+
 ; Descriptor
 %macro Descriptor 3
     dw  %2 & 0xFFFF
