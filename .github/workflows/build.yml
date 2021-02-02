@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
     
-      - name: Env
+      - name: Install environment
         run: ./configure
 
       - name: Build
