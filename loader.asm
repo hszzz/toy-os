@@ -232,62 +232,10 @@ FuncSub:
     retf    ; ret far
 CG_Sub    equ    FuncSub - $$
 
-FunctionSegmentLen    equ    $ - FUNCTION_SEGMENT  
-
-[section .s32]
-[bits 32]
-CODE32_SEGMENT:
-    mov ax, GraphicsSelector
-    mov gs, ax
-
-    ; initialize stack segment through selector
-    mov eax, GStackSelector
-    mov ss, eax
-
-    mov eax, TopOfStack32
-	mov esp, eax
-
-    mov ax, Data32Selector
-    mov ds, ax
-
-    mov ebp, TOYOS_OFFSET
-    mov bx, 0x0C
-    mov dh, 12
-    mov dl, 33
-    call PrintString
-
-    mov ebp, HELLO_OFFSET
-    mov bx, 0x0C
-    mov dh, 13
-    mov dl, 30
-    call PrintString
-
-    ; test Call Gate
-    mov ax, 1
-    mov bx, 1
-    call CGFuncAddSelector : 0 ; == call FunctionSelector : CG_Add
-
-    mov ax, 2
-    mov bx, 1
-    call CGFuncSubSelector : 0 ; == call FunctionSelector : CG_Sub
-
-
-    ;jmp	CODE32_SEGMENT
-    
-    ; jmp to 16 bits protected mode
-    ; jmp Code16Selector : 0
-    
-    ; load LDT for task A
-    mov ax, TaskALdtSelector
-    lldt ax
-
-    ; jmp to task A
-    jmp TaskACode32Selector : 0
-
 ; ds:ebp --> string address
 ; bx     --> attribute
 ; dx     --> dh: row, dl: col
-PrintString:
+FuncPrintString:
     push ebp
     push edi
     push dx
@@ -316,8 +264,60 @@ end:
     pop dx
     pop edi
     pop ebp
+    retf
+CG_PrintString    equ    FuncPrintString - $$
 
-    ret
+FunctionSegmentLen    equ    $ - FUNCTION_SEGMENT  
+
+[section .s32]
+[bits 32]
+CODE32_SEGMENT:
+    mov ax, GraphicsSelector
+    mov gs, ax
+
+    ; initialize stack segment through selector
+    mov eax, GStackSelector
+    mov ss, eax
+
+    mov eax, TopOfStack32
+	mov esp, eax
+
+    mov ax, Data32Selector
+    mov ds, ax
+
+    mov ebp, TOYOS_OFFSET
+    mov bx, 0x0C
+    mov dh, 12
+    mov dl, 33
+    call FunctionSelector : CG_PrintString 
+
+    mov ebp, HELLO_OFFSET
+    mov bx, 0x0C
+    mov dh, 13
+    mov dl, 30
+    call FunctionSelector : CG_PrintString 
+
+    ; test Call Gate
+    mov ax, 1
+    mov bx, 1
+    call CGFuncAddSelector : 0 ; == call FunctionSelector : CG_Add
+
+    mov ax, 2
+    mov bx, 1
+    call CGFuncSubSelector : 0 ; == call FunctionSelector : CG_Sub
+
+
+    ;jmp	CODE32_SEGMENT
+    
+    ; jmp to 16 bits protected mode
+    ; jmp Code16Selector : 0
+    
+    ; load LDT for task A
+    mov ax, TaskALdtSelector
+    lldt ax
+
+    ; jmp to task A
+    jmp TaskACode32Selector : 0
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
@@ -379,43 +379,8 @@ TASK_A_CODE32_SEGMENT:
     mov bx, 0x0C
     mov dh, 14
     mov dl, 29
-    call TaskAPrintString
+    call FunctionSelector : CG_PrintString 
 
     jmp Code16Selector : 0
 
-; ds:ebp    --> string address
-; bx        --> attribute
-; dx        --> dh : row, dl : col
-TaskAPrintString:
-    push ebp
-    push eax
-    push edi
-    push cx
-    push dx
-    
-task_print:
-    mov cl, [ds:ebp]
-    cmp cl, 0
-    je task_end
-    mov eax, 80
-    mul dh
-    add al, dl
-    shl eax, 1
-    mov edi, eax
-    mov ah, bl
-    mov al, cl
-    mov [gs:edi], ax
-    inc ebp
-    inc dl
-    jmp task_print
-
-task_end:
-    pop dx
-    pop cx
-    pop edi
-    pop eax
-    pop ebp
-    
-    ret
-    
 TaskACode32SegmentLen   equ  $ - TASK_A_CODE32_SEGMENT
