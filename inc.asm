@@ -20,11 +20,28 @@ SA_TIL    equ    4
 ; LDT Attribute
 DA_LDT    equ    0x82
 
+; Gate Attribute
+DA_TaskGate    equ    0x85
+DA_386TSS      equ    0x89
+DA_386CGate    equ    0x8C
+DA_386IGate    equ    0x8E
+DA_386TGate    equ    0x8F
+
 ; Descriptor
+; Descriptor Base, Limit, Attribute
 %macro Descriptor 3
     dw  %2 & 0xFFFF
     dw  %1 & 0xFFFF
     db  (%1 >> 16) & 0xFF
     dw  ((%2 >> 8) & 0xF00) | (%3 & 0xF0FF) 
     db  (%1 >> 24) & 0xFF
+%endmacro
+
+; Gate
+; Gate Selector, Offset, DCount, Attribute
+%macro Gate 4
+    dw  (%2 & 0xFFFF) 
+    dw  %1
+    dw  (%3 & 0x1F) | ((%4 << 8) & 0xFF00)
+    dw  ((%2 >> 16) & 0xFFFF)
 %endmacro
