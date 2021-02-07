@@ -18,6 +18,11 @@ UPDATE_DESC   : Descriptor  0,       0xFFFF,               DA_DRW
 
 ; task a LDT
 TASK_A_LDT_DESC : Descriptor 0,      TaskALdtLen - 1,      DA_LDT
+
+; Call Gate Test
+FUNCTION_DESC : Descriptor 0,        FunctionSegmentLen - 1,  DA_C + DA_32  
+CG_FUNC_ADD_DESC : Gate    FunctionSelector, CG_Add, 0, DA_386CGate 
+CG_FUNC_SUB_DESC : Gate    FunctionSelector, CG_Sub, 0, DA_386CGate 
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -36,6 +41,11 @@ Code16Selector    equ    (0x0005 << 3) + SA_TIG + SA_RPL0
 UpdateSelector    equ    (0x0006 << 3) + SA_TIG + SA_RPL0
 
 TaskALdtSelector    equ    (0x0007 << 3) + SA_TIG + SA_RPL0
+
+FunctionSelector  equ    (0x0008 << 3) + SA_TIG + SA_RPL0
+
+CGFuncAddSelector equ    (0x0009 << 3) + SA_TIG + SA_RPL0
+CGFuncSubSelector equ    (0x000A << 3) + SA_TIG + SA_RPL0
 ; GDT Selector END
 
 TopOfStack16 equ 0x7C00
@@ -99,6 +109,11 @@ ENTRY_SEGMENT:
     mov esi, TASK_A_STACK32_SEGMENT
     mov edi, TASK_A_STACK32_DESC
 	call InitDescItem
+
+    ; initialize FUNCTION_SEGMENT
+    mov esi, FUNCTION_SEGMENT
+    mov edi, FUNCTION_DESC
+    call InitDescItem
 
     ; initialize GDT pointer struct
     mov eax, 0
@@ -191,6 +206,34 @@ BACK_TO_REAL_MODE:
 
 CODE16_SegmentLen    equ    $ - CODE16_SEGMENT
 
+[section .func]
+[bits 32]
+FUNCTION_SEGMENT:
+
+; ax --> a
+; bx --> b
+;
+; return
+;    cx --> a + b
+FuncAdd:
+    mov cx, ax
+	add cx, bx
+    retf    ; ret far
+CG_Add    equ    FuncAdd - $$
+
+; ax --> a
+; bx --> b
+;
+; return
+;    cx --> a - b
+FuncSub:
+    mov cx, ax
+	sub cx, bx
+    retf    ; ret far
+CG_Sub    equ    FuncSub - $$
+
+FunctionSegmentLen    equ    $ - FUNCTION_SEGMENT  
+
 [section .s32]
 [bits 32]
 CODE32_SEGMENT:
@@ -219,13 +262,23 @@ CODE32_SEGMENT:
     mov dl, 30
     call PrintString
 
+    ; test Call Gate
+    mov ax, 1
+    mov bx, 1
+    call CGFuncAddSelector : 0 ; == call FunctionSelector : CG_Add
+
+    mov ax, 2
+    mov bx, 1
+    call CGFuncSubSelector : 0 ; == call FunctionSelector : CG_Sub
+
+
     ;jmp	CODE32_SEGMENT
     
     ; jmp to 16 bits protected mode
     ; jmp Code16Selector : 0
     
     ; load LDT for task A
-	mov ax, TaskALdtSelector
+    mov ax, TaskALdtSelector
     lldt ax
 
     ; jmp to task A
