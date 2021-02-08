@@ -7,10 +7,10 @@ jmp ENTRY_SEGMENT
 [section .gdt]
 ; GDT Definition BEGIN
 GDT_ENTRY     : Descriptor  0,       0,                    0
-CODE32_DESC   : Descriptor  0,       Code32SegmentLen - 1, DA_C + DA_32
-GRAPHICS_DESC : Descriptor  0xB8000, 0x07FFF,              DA_DRWA + DA_32
-DATA32_DESC   : Descriptor  0,       DataSegmentLen - 1,   DA_DR + DA_32
-GSTACK_DESC   : Descriptor  0,       TopOfStack32,         DA_DRW + DA_32
+CODE32_DESC   : Descriptor  0,       Code32SegmentLen - 1, DA_C + DA_32 + DA_DPL3
+GRAPHICS_DESC : Descriptor  0xB8000, 0x07FFF,              DA_DRWA + DA_32 + DA_DPL3
+DATA32_DESC   : Descriptor  0,       DataSegmentLen - 1,   DA_DR + DA_32 + DA_DPL3
+GSTACK_DESC   : Descriptor  0,       TopOfGStack,          DA_DRW + DA_32 + DA_DPL3
 
 ; used in back to real mode 
 CODE16_DESC   : Descriptor  0,       0xFFFF,               DA_C
@@ -40,7 +40,7 @@ GStackSelector    equ    (0x0004 << 3) + SA_TIG + SA_RPL0
 Code16Selector    equ    (0x0005 << 3) + SA_TIG + SA_RPL0
 UpdateSelector    equ    (0x0006 << 3) + SA_TIG + SA_RPL0
 
-TaskALdtSelector    equ    (0x0007 << 3) + SA_TIG + SA_RPL0
+TaskALdtSelector  equ    (0x0007 << 3) + SA_TIG + SA_RPL0
 
 FunctionSelector  equ    (0x0008 << 3) + SA_TIG + SA_RPL0
 
@@ -136,7 +136,17 @@ ENTRY_SEGMENT:
     mov cr0, eax
 
     ; jump to 32 bits mode
-    jmp dword Code32Selector : 0
+    ; jmp dword Code32Selector : 0
+
+    ; Test high privilege --> low privilege
+    ; high privilege code CAN'T jump to low privilege code STRAIGHTLY
+    ; 1. set stack(push ss, push sp)
+    ; 2. set address of low privilege code (Selector : Offset) 
+    push GStackSelector   ; push ss
+    push TopOfGStack      ; push sp
+    push Code32Selector   ; push cs
+    push 0                ; push ip
+    retf
 
 ; 16 bits protected mode back to real mode
 BACK_ENTRY_SEGMENT:
@@ -279,7 +289,7 @@ CODE32_SEGMENT:
     mov eax, GStackSelector
     mov ss, eax
 
-    mov eax, TopOfStack32
+    mov eax, TopOfGStack
 	mov esp, eax
 
     mov ax, Data32Selector
@@ -327,7 +337,7 @@ Code32SegmentLen    equ    $ - CODE32_SEGMENT
 STACK32_SEGMENT:
     times 1024 * 4 db 0
 Stack32SegmentLen    equ    $ - STACK32_SEGMENT
-TopOfStack32         equ    Stack32SegmentLen - 1
+TopOfGStack         equ    Stack32SegmentLen - 1
 
 ; task A segment
 
