@@ -20,9 +20,9 @@ UPDATE_DESC   : Descriptor  0,       0xFFFF,               DA_DRW
 TASK_A_LDT_DESC : Descriptor 0,      TaskALdtLen - 1,      DA_LDT
 
 ; Call Gate Test
-FUNCTION_DESC : Descriptor 0,        FunctionSegmentLen - 1,  DA_C + DA_32  
-CG_FUNC_ADD_DESC : Gate    FunctionSelector, CG_Add, 0, DA_386CGate 
-CG_FUNC_SUB_DESC : Gate    FunctionSelector, CG_Sub, 0, DA_386CGate 
+FUNCTION_DESC : Descriptor 0,        FunctionSegmentLen - 1,  DA_C + DA_32 + DA_DPL3 
+CG_FUNC_ADD_DESC : Gate    FunctionSelector, CG_Add, 0, DA_386CGate + DA_DPL3
+CG_FUNC_SUB_DESC : Gate    FunctionSelector, CG_Sub, 0, DA_386CGate + DA_DPL3
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -32,20 +32,20 @@ GDT_PTR:
     dd 0
 
 ; GDT Selector BEGIN
-Code32Selector    equ    (0x0001 << 3) + SA_TIG + SA_RPL0
-GraphicsSelector  equ    (0x0002 << 3) + SA_TIG + SA_RPL0
-Data32Selector    equ    (0x0003 << 3) + SA_TIG + SA_RPL0
-GStackSelector    equ    (0x0004 << 3) + SA_TIG + SA_RPL0
+Code32Selector    equ    (0x0001 << 3) + SA_TIG + SA_RPL3
+GraphicsSelector  equ    (0x0002 << 3) + SA_TIG + SA_RPL3
+Data32Selector    equ    (0x0003 << 3) + SA_TIG + SA_RPL3
+GStackSelector    equ    (0x0004 << 3) + SA_TIG + SA_RPL3
 
-Code16Selector    equ    (0x0005 << 3) + SA_TIG + SA_RPL0
-UpdateSelector    equ    (0x0006 << 3) + SA_TIG + SA_RPL0
+Code16Selector    equ    (0x0005 << 3) + SA_TIG
+UpdateSelector    equ    (0x0006 << 3) + SA_TIG
 
-TaskALdtSelector  equ    (0x0007 << 3) + SA_TIG + SA_RPL0
+TaskALdtSelector  equ    (0x0007 << 3) + SA_TIG
 
-FunctionSelector  equ    (0x0008 << 3) + SA_TIG + SA_RPL0
+FunctionSelector  equ    (0x0008 << 3) + SA_TIG + SA_RPL3
 
-CGFuncAddSelector equ    (0x0009 << 3) + SA_TIG + SA_RPL0
-CGFuncSubSelector equ    (0x000A << 3) + SA_TIG + SA_RPL0
+CGFuncAddSelector equ    (0x0009 << 3) + SA_TIG + SA_RPL3
+CGFuncSubSelector equ    (0x000A << 3) + SA_TIG + SA_RPL3
 ; GDT Selector END
 
 TopOfStack16 equ 0x7C00
@@ -323,11 +323,12 @@ CODE32_SEGMENT:
     ; jmp Code16Selector : 0
     
     ; load LDT for task A
-    mov ax, TaskALdtSelector
-    lldt ax
+    ; mov ax, TaskALdtSelector
+    ; lldt ax
 
     ; jmp to task A
-    jmp TaskACode32Selector : 0
+    ; jmp TaskACode32Selector : 0
+    jmp $
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
