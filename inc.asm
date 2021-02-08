@@ -20,6 +20,12 @@ SA_TIL    equ    4
 ; LDT Attribute
 DA_LDT    equ    0x82
 
+; Segment Privilege
+DA_DPL0    equ    0x00
+DA_DPL1    equ    0x20
+DA_DPL2    equ    0x40
+DA_DPL3    equ    0x60
+
 ; Gate Attribute
 DA_TaskGate    equ    0x85
 DA_386TSS      equ    0x89
