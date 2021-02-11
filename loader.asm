@@ -7,10 +7,10 @@ jmp ENTRY_SEGMENT
 [section .gdt]
 ; GDT Definition BEGIN
 GDT_ENTRY     : Descriptor  0,       0,                    0
-CODE32_DESC   : Descriptor  0,       Code32SegmentLen - 1, DA_C + DA_32 + DA_DPL3
+CODE32_DESC   : Descriptor  0,       Code32SegmentLen - 1, DA_C + DA_32 + DA_DPL0
 GRAPHICS_DESC : Descriptor  0xB8000, 0x07FFF,              DA_DRWA + DA_32 + DA_DPL3
-DATA32_DESC   : Descriptor  0,       DataSegmentLen - 1,   DA_DR + DA_32 + DA_DPL3
-GSTACK_DESC   : Descriptor  0,       TopOfGStack,          DA_DRW + DA_32 + DA_DPL3
+DATA32_DESC   : Descriptor  0,       DataSegmentLen - 1,   DA_DR + DA_32 + DA_DPL0
+GSTACK_DESC   : Descriptor  0,       TopOfGStack,          DA_DRW + DA_32 + DA_DPL0
 
 ; used in back to real mode 
 CODE16_DESC   : Descriptor  0,       0xFFFF,               DA_C
@@ -19,10 +19,11 @@ UPDATE_DESC   : Descriptor  0,       0xFFFF,               DA_DRW
 ; task a LDT
 TASK_A_LDT_DESC : Descriptor 0,      TaskALdtLen - 1,      DA_LDT
 
-; Call Gate Test
-FUNCTION_DESC : Descriptor 0,        FunctionSegmentLen - 1,  DA_C + DA_32 + DA_DPL3 
-CG_FUNC_ADD_DESC : Gate    FunctionSelector, CG_Add, 0, DA_386CGate + DA_DPL3
-CG_FUNC_SUB_DESC : Gate    FunctionSelector, CG_Sub, 0, DA_386CGate + DA_DPL3
+FUNCTION_DESC : Descriptor 0,        FunctionSegmentLen - 1,  DA_C + DA_32 + DA_DPL0 
+; Call Gate
+FUNC_PRINTSTRING_DESC : Gate FunctionSelector, CG_PrintString, 0, DA_386CGate + DA_DPL3 
+; TSS
+TSS_DESC      : Descriptor  0,       TSSLen,               DA_386TSS + DA_DPL0
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -32,21 +33,40 @@ GDT_PTR:
     dd 0
 
 ; GDT Selector BEGIN
-Code32Selector    equ    (0x0001 << 3) + SA_TIG + SA_RPL3
+Code32Selector    equ    (0x0001 << 3) + SA_TIG + SA_RPL0
 GraphicsSelector  equ    (0x0002 << 3) + SA_TIG + SA_RPL3
-Data32Selector    equ    (0x0003 << 3) + SA_TIG + SA_RPL3
-GStackSelector    equ    (0x0004 << 3) + SA_TIG + SA_RPL3
+Data32Selector    equ    (0x0003 << 3) + SA_TIG + SA_RPL0
+GStackSelector    equ    (0x0004 << 3) + SA_TIG + SA_RPL0
 
 Code16Selector    equ    (0x0005 << 3) + SA_TIG
 UpdateSelector    equ    (0x0006 << 3) + SA_TIG
 
 TaskALdtSelector  equ    (0x0007 << 3) + SA_TIG
 
-FunctionSelector  equ    (0x0008 << 3) + SA_TIG + SA_RPL3
+FunctionSelector  equ    (0x0008 << 3) + SA_TIG + SA_RPL0
 
-CGFuncAddSelector equ    (0x0009 << 3) + SA_TIG + SA_RPL3
-CGFuncSubSelector equ    (0x000A << 3) + SA_TIG + SA_RPL3
+; Gate Selector
+FuncPrintStringSelector    equ    (0x0009 << 3) + SA_TIG + SA_RPL3
+
+TSSSelector       equ    (0x000A << 3) + SA_TIG + SA_RPL0
 ; GDT Selector END
+
+; TSS
+[section .tss]
+[bits 32]
+TSS_SEGMENT:
+    dd 0
+    dd TopOfGStack     ; priviliege 0
+    dd GStackSelector
+    dd 0               ; priviliege 1
+    dd 0
+    dd 0               ; priviliege 2
+    dd 0
+    times 4*18 dd 0
+    dw 0
+    dw $ - TSS_SEGMENT
+    db 0xFF
+TSSLen    equ    $ - TSS_SEGMENT
 
 TopOfStack16 equ 0x7C00
 
@@ -115,6 +135,11 @@ ENTRY_SEGMENT:
     mov edi, FUNCTION_DESC
     call InitDescItem
 
+    ; initialize TSS_DESC
+    mov esi, TSS_SEGMENT
+    mov edi, TSS_DESC
+    call InitDescItem
+
     ; initialize GDT pointer struct
     mov eax, 0
     mov ax,  ds
@@ -136,17 +161,17 @@ ENTRY_SEGMENT:
     mov cr0, eax
 
     ; jump to 32 bits mode
-    ; jmp dword Code32Selector : 0
+    jmp dword Code32Selector : 0
 
     ; Test high privilege --> low privilege
     ; high privilege code CAN'T jump to low privilege code STRAIGHTLY
     ; 1. set stack(push ss, push sp)
     ; 2. set address of low privilege code (Selector : Offset) 
-    push GStackSelector   ; push ss
-    push TopOfGStack      ; push sp
-    push Code32Selector   ; push cs
-    push 0                ; push ip
-    retf
+    ; push GStackSelector   ; push ss
+    ; push TopOfGStack      ; push sp
+    ; push Code32Selector   ; push cs
+    ; push 0                ; push ip
+    ; retf
 
 ; 16 bits protected mode back to real mode
 BACK_ENTRY_SEGMENT:
@@ -219,29 +244,6 @@ CODE16_SegmentLen    equ    $ - CODE16_SEGMENT
 [section .func]
 [bits 32]
 FUNCTION_SEGMENT:
-
-; ax --> a
-; bx --> b
-;
-; return
-;    cx --> a + b
-FuncAdd:
-    mov cx, ax
-	add cx, bx
-    retf    ; ret far
-CG_Add    equ    FuncAdd - $$
-
-; ax --> a
-; bx --> b
-;
-; return
-;    cx --> a - b
-FuncSub:
-    mov cx, ax
-	sub cx, bx
-    retf    ; ret far
-CG_Sub    equ    FuncSub - $$
-
 ; ds:ebp --> string address
 ; bx     --> attribute
 ; dx     --> dh: row, dl: col
@@ -305,17 +307,11 @@ CODE32_SEGMENT:
     mov bx, 0x0C
     mov dh, 13
     mov dl, 30
-    call FunctionSelector : CG_PrintString 
+    call FunctionSelector : CG_PrintString
 
-    ; test Call Gate
-    mov ax, 1
-    mov bx, 1
-    call CGFuncAddSelector : 0 ; == call FunctionSelector : CG_Add
-
-    mov ax, 2
-    mov bx, 1
-    call CGFuncSubSelector : 0 ; == call FunctionSelector : CG_Sub
-
+    ; load TSS
+    mov ax, TSSSelector
+    ltr ax
 
     ;jmp	CODE32_SEGMENT
     
@@ -323,12 +319,16 @@ CODE32_SEGMENT:
     ; jmp Code16Selector : 0
     
     ; load LDT for task A
-    ; mov ax, TaskALdtSelector
-    ; lldt ax
+    mov ax, TaskALdtSelector
+    lldt ax
 
     ; jmp to task A
-    ; jmp TaskACode32Selector : 0
-    jmp $
+    push TaskAStack32Selector 
+    push TaskATopOfStack32
+    push TaskACode32Selector
+    push 0
+    retf
+    ; jmp $
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
@@ -390,8 +390,10 @@ TASK_A_CODE32_SEGMENT:
     mov bx, 0x0C
     mov dh, 14
     mov dl, 29
-    call FunctionSelector : CG_PrintString 
+    ; call FunctionSelector : CG_PrintString 
+    call FuncPrintStringSelector : 0
 
     jmp Code16Selector : 0
 
 TaskACode32SegmentLen   equ  $ - TASK_A_CODE32_SEGMENT
+

@@ -50,3 +50,7 @@ bochs : all
 reverse : $(LOADER_OUT)
 	$(MKDIR) $(REVERSE_PATH)
 	@ndisasm -o 0x9000 $< > $(REVERSE_PATH)/reverse.txt
+
+reverse32 : $(LOADER_OUT)
+	$(MKDIR) $(REVERSE_PATH)
+	@ndisasm -b 32 -o 0x9000 $< > $(REVERSE_PATH)/reverse.txt
