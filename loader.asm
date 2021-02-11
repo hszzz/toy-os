@@ -393,7 +393,9 @@ TASK_A_CODE32_SEGMENT:
     ; call FunctionSelector : CG_PrintString 
     call FuncPrintStringSelector : 0
 
-    jmp Code16Selector : 0
+    ; jmp to 16 bits protected mode
+    ; jmp Code16Selector : 0
+    jmp $
 
 TaskACode32SegmentLen   equ  $ - TASK_A_CODE32_SEGMENT
 
