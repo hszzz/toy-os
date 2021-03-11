@@ -4,5 +4,5 @@ sudo mkdir /mnt/hgfs/
 
 sudo apt-get install nasm
 
-sudo apt-get install bximage
+sudo apt-get install bximage=1.35
 
