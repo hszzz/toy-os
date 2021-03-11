@@ -1,5 +1,8 @@
 %include "inc.asm"
 
+PageDirBase    equ    0x200000
+PageTblBase    equ    0x201000
+
 org 0x9000
 
 jmp ENTRY_SEGMENT
@@ -24,6 +27,11 @@ FUNCTION_DESC : Descriptor 0,        FunctionSegmentLen - 1,  DA_C + DA_32 + DA_
 FUNC_PRINTSTRING_DESC : Gate FunctionSelector, CG_PrintString, 0, DA_386CGate + DA_DPL3 
 ; TSS
 TSS_DESC      : Descriptor  0,       TSSLen,               DA_386TSS + DA_DPL0
+
+; Page Dir and Tbl Desc
+PAGE_DIR_DESC : Descriptor PageDirBase,   4095,            DA_DRW + DA_32 
+PAGE_TBL_DESC : Descriptor PageTblBase,   1023,            DA_DRW + DA_LIMIT_4K + DA_32
+
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -49,6 +57,11 @@ FunctionSelector  equ    (0x0008 << 3) + SA_TIG + SA_RPL0
 FuncPrintStringSelector    equ    (0x0009 << 3) + SA_TIG + SA_RPL3
 
 TSSSelector       equ    (0x000A << 3) + SA_TIG + SA_RPL0
+
+; Page Dir and Tbl Selector
+PageDirSelector   equ    (0x000B << 3) + SA_TIG + SA_RPL0
+PageTblSelector   equ    (0x000C << 3) + SA_TIG + SA_RPL0
+
 ; GDT Selector END
 
 ; TSS
@@ -97,8 +110,7 @@ ENTRY_SEGMENT:
     mov esi, CODE32_SEGMENT
     mov edi, CODE32_DESC
     call InitDescItem
-
-	; initialize DGT for data32 segment
+    ; initialize DGT for data32 segment
     mov esi, DATA32_SEGMENT
     mov edi, DATA32_DESC
     call InitDescItem
@@ -128,7 +140,7 @@ ENTRY_SEGMENT:
 
     mov esi, TASK_A_STACK32_SEGMENT
     mov edi, TASK_A_STACK32_DESC
-	call InitDescItem
+    call InitDescItem
 
     ; initialize FUNCTION_SEGMENT
     mov esi, FUNCTION_SEGMENT
@@ -151,7 +163,7 @@ ENTRY_SEGMENT:
     lgdt [GDT_PTR]	 ; load GDT 
 
     cli				 ; close interrupt
-	
+
     in al, 0x92		 ; open A20
     or al, 00000010b 
     out 0x92, al
@@ -233,7 +245,7 @@ CODE16_SEGMENT:
     ; notify CPU to exit protected mode
     mov eax, cr0
     and al, 11111110b
-	mov cr0, eax
+    mov cr0, eax
 
 ; HACK TRICK: get code segment address when program is running
 BACK_TO_REAL_MODE:
@@ -292,7 +304,7 @@ CODE32_SEGMENT:
     mov ss, eax
 
     mov eax, TopOfGStack
-	mov esp, eax
+    mov esp, eax
 
     mov ax, Data32Selector
     mov ds, ax
@@ -309,11 +321,13 @@ CODE32_SEGMENT:
     mov dl, 30
     call FunctionSelector : CG_PrintString
 
+    call InitPage
+
+    jmp $
+
     ; load TSS
     mov ax, TSSSelector
     ltr ax
-
-    ;jmp	CODE32_SEGMENT
     
     ; jmp to 16 bits protected mode
     ; jmp Code16Selector : 0
@@ -329,6 +343,51 @@ CODE32_SEGMENT:
     push 0
     retf
     ; jmp $
+
+InitPage:
+    push eax
+    push ecx
+    push edi
+    push es
+
+    mov ax, PageDirSelector
+    mov es, ax
+    mov ecx, 1024
+    mov edi, 0
+    mov eax, PageTblBase | PG_P | PG_USU | PG_RWW
+
+    cld
+
+initdir:
+    stosd
+    add eax, 4096
+    loop initdir
+
+    mov ax, PageTblSelector
+    mov es, ax
+    mov ecx, 1024 * 1024
+    mov edi, 0
+    mov eax, PG_P | PG_USU | PG_RWW
+    
+    cld
+
+inittbl:
+    stosd
+    add eax, 4096
+    loop inittbl
+
+    mov eax, PageDirBase
+    mov cr3, eax
+    mov eax, cr0
+    or  eax, 0x80000000
+    mov cr0, eax
+
+    pop es
+    pop edi
+    pop ecx
+    pop eax
+
+    ret
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
