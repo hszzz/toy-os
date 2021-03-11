@@ -7,6 +7,14 @@ DA_C      equ    0x98
 DA_CR     equ    0x9A
 DA_CCO    equ    0x9C
 DA_CCOR   equ    0x9E
+DA_LIMIT_4K equ  0x8000
+
+; page attribute
+PG_P      equ    1
+PG_RWR    equ    0
+PG_RWW    equ    2
+PG_USS    equ    0
+PG_USU    equ    4
 
 ; Selector Attribute
 SA_RPL0    equ    0
