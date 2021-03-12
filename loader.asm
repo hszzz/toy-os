@@ -1,7 +1,10 @@
 %include "inc.asm"
 
-PageDirBase    equ    0x200000
-PageTblBase    equ    0x201000
+PageDirBase0    equ    0x200000
+PageTblBase0    equ    0x201000
+
+PageDirBase1    equ    0x300000
+PageTblBase1    equ    0x301000
 
 org 0x9000
 
@@ -29,8 +32,11 @@ FUNC_PRINTSTRING_DESC : Gate FunctionSelector, CG_PrintString, 0, DA_386CGate + 
 TSS_DESC      : Descriptor  0,       TSSLen,               DA_386TSS + DA_DPL0
 
 ; Page Dir and Tbl Desc
-PAGE_DIR_DESC : Descriptor PageDirBase,   4095,            DA_DRW + DA_32 
-PAGE_TBL_DESC : Descriptor PageTblBase,   1023,            DA_DRW + DA_LIMIT_4K + DA_32
+PAGE_DIR_DESC0 : Descriptor PageDirBase0,   4095,            DA_DRW + DA_32 
+PAGE_TBL_DESC0 : Descriptor PageTblBase0,   1023,            DA_DRW + DA_LIMIT_4K + DA_32
+
+PAGE_DIR_DESC1 : Descriptor PageDirBase1,   4095,            DA_DRW + DA_32 
+PAGE_TBL_DESC1 : Descriptor PageTblBase1,   1023,            DA_DRW + DA_LIMIT_4K + DA_32
 
 ; GDT Definition END
 
@@ -59,8 +65,10 @@ FuncPrintStringSelector    equ    (0x0009 << 3) + SA_TIG + SA_RPL3
 TSSSelector       equ    (0x000A << 3) + SA_TIG + SA_RPL0
 
 ; Page Dir and Tbl Selector
-PageDirSelector   equ    (0x000B << 3) + SA_TIG + SA_RPL0
-PageTblSelector   equ    (0x000C << 3) + SA_TIG + SA_RPL0
+PageDirSelector0   equ    (0x000B << 3) + SA_TIG + SA_RPL0
+PageTblSelector0   equ    (0x000C << 3) + SA_TIG + SA_RPL0
+PageDirSelector1   equ    (0x000D << 3) + SA_TIG + SA_RPL0
+PageTblSelector1   equ    (0x000E << 3) + SA_TIG + SA_RPL0
 
 ; GDT Selector END
 
@@ -321,7 +329,24 @@ CODE32_SEGMENT:
     mov dl, 30
     call FunctionSelector : CG_PrintString
 
-    call InitPage
+    ; initialize page for simulation task 1
+    mov eax, PageDirSelector0
+    mov ebx, PageTblSelector0
+    mov ecx, PageTblBase0
+    call InitPageTable
+
+    ; initialize page for simulation task 2
+    mov eax, PageDirSelector1
+    mov ebx, PageTblSelector1
+    mov ecx, PageTblBase1
+    call InitPageTable
+
+    ; simulation task switching 
+    mov eax, PageDirBase0
+    call SwitchPageTable
+
+    mov eax, PageDirBase1
+    call SwitchPageTable
 
     jmp $
 
@@ -344,17 +369,22 @@ CODE32_SEGMENT:
     retf
     ; jmp $
 
-InitPage:
-    push eax
-    push ecx
-    push edi
+; initialize page table
+; eax --> page directory base selector
+; ebx --> page table base selector
+; ecx --> page table base
+InitPageTable:
     push es
+    push eax ; [esp + 12]
+    push ebx ; [esp + 8]
+    push ecx ; [esp + 4]
+    push edi ; [esp]
 
-    mov ax, PageDirSelector
     mov es, ax
     mov ecx, 1024
     mov edi, 0
-    mov eax, PageTblBase | PG_P | PG_USU | PG_RWW
+    mov eax, [esp + 4]
+    or  eax, PG_P | PG_USU | PG_RWW
 
     cld
 
@@ -363,7 +393,7 @@ initdir:
     add eax, 4096
     loop initdir
 
-    mov ax, PageTblSelector
+    mov ax, [esp + 8]
     mov es, ax
     mov ecx, 1024 * 1024
     mov edi, 0
@@ -376,17 +406,37 @@ inittbl:
     add eax, 4096
     loop inittbl
 
-    mov eax, PageDirBase
+    pop edi
+    pop ecx
+    pop ebx
+    pop eax
+    pop es
+
+    ret
+
+; eax --> page directory base
+; how to switch?
+;   1. close page
+;   2. switch page directory base
+;   3. open page
+SwitchPageTable:
+    push eax
+    
+    ; close page
+    mov eax, cr0
+    and eax, 0x7FFFFFFF
+    mov cr0, eax
+
+    ; switch page directory base address
+    mov eax, [esp]
+
+    ; open page
     mov cr3, eax
     mov eax, cr0
     or  eax, 0x80000000
     mov cr0, eax
 
-    pop es
-    pop edi
-    pop ecx
     pop eax
-
     ret
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
