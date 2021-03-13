@@ -6,6 +6,10 @@ PageTblBase0    equ    0x201000
 PageDirBase1    equ    0x300000
 PageTblBase1    equ    0x301000
 
+ObjectAddrV     equ    0x401000
+TargetAddr1     equ    0x501000
+TargetAddr2     equ    0x601000
+
 org 0x9000
 
 jmp ENTRY_SEGMENT
@@ -38,6 +42,8 @@ PAGE_TBL_DESC0 : Descriptor PageTblBase0,   1023,            DA_DRW + DA_LIMIT_4
 PAGE_DIR_DESC1 : Descriptor PageDirBase1,   4095,            DA_DRW + DA_32 
 PAGE_TBL_DESC1 : Descriptor PageTblBase1,   1023,            DA_DRW + DA_LIMIT_4K + DA_32
 
+; flat memory mode
+FLAT_MODE_DESC : Descriptor 0,            0xFFFFF,           DA_DRW + DA_LIMIT_4K + DA_32
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -70,6 +76,8 @@ PageTblSelector0   equ    (0x000C << 3) + SA_TIG + SA_RPL0
 PageDirSelector1   equ    (0x000D << 3) + SA_TIG + SA_RPL0
 PageTblSelector1   equ    (0x000E << 3) + SA_TIG + SA_RPL0
 
+; flat mode selector
+FlatModeSelector   equ    (0x000F << 3) + SA_TIG + SA_RPL0
 ; GDT Selector END
 
 ; TSS
@@ -95,9 +103,11 @@ TopOfStack16 equ 0x7C00
 [bits 32]
 DATA32_SEGMENT:
     TOYOS db "toy-OS!", 0
+    TOYOS_LEN  equ $ - TOYOS 
     TOYOS_OFFSET equ TOYOS - $$ ; offset == TOYOS's address
 
     HELLO db "hello world!", 0
+    HELLO_LEN  equ $ - HELLO 
     HELLO_OFFSET equ HELLO - $$
 DataSegmentLen equ $ - DATA32_SEGMENT
 
@@ -203,7 +213,7 @@ BACK_ENTRY_SEGMENT:
 
     ; close pretected mode 
     in al, 0x92
-	and al, 11111101b
+    and al, 11111101b
     out 0x92, al
 
     ; open interreputer
@@ -317,6 +327,22 @@ CODE32_SEGMENT:
     mov ax, Data32Selector
     mov ds, ax
 
+    ; use flat mode to change memory
+    mov ax, FlatModeSelector
+    mov es, ax
+    
+    mov esi, TOYOS_OFFSET
+    mov edi, TargetAddr1
+    mov ecx, TOYOS_LEN
+    call MemCpy32
+
+    mov esi, HELLO_OFFSET
+    mov edi, TargetAddr2
+    mov ecx, HELLO_LEN
+    call MemCpy32
+
+    jmp $ ; x /8bx ds:0 | x /8bx es:0x501000
+
     mov ebp, TOYOS_OFFSET
     mov bx, 0x0C
     mov dh, 12
@@ -368,6 +394,55 @@ CODE32_SEGMENT:
     push 0
     retf
     ; jmp $
+
+; memory copy under protected mode
+; es    --> flat mode selector
+; ds:si --> source
+; es:di --> destination
+; cx    --> length
+MemCpy32:
+    push esi
+    push edi
+    push ecx
+    push ax
+
+    cmp esi, edi
+    
+	ja btoe
+
+    add esi, ecx
+    add edi, ecx
+    dec esi
+    dec edi
+
+    jmp etob
+
+btoe:
+    cmp ecx, 0
+    jz done
+    mov al, [ds:esi]
+    mov byte [es:edi], al
+    inc esi
+    inc edi
+    dec ecx
+    jmp btoe
+
+etob:
+    cmp ecx, 0
+    jz done
+    mov al, [ds:esi]
+    mov byte [es:edi], al
+    dec esi
+    dec edi
+    dec ecx
+    jmp etob
+
+done:
+    pop ax
+    pop ecx
+    pop edi
+    pop esi
+    ret
 
 ; initialize page table
 ; eax --> page directory base selector
