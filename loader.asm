@@ -3,12 +3,12 @@
 PageDirBase0    equ    0x200000
 PageTblBase0    equ    0x201000
 
-PageDirBase1    equ    0x300000
-PageTblBase1    equ    0x301000
+PageDirBase1    equ    0x700000
+PageTblBase1    equ    0x701000
 
 ObjectAddrV     equ    0x401000
-TargetAddr1     equ    0x501000
-TargetAddr2     equ    0x601000
+TargetAddr1     equ    0xD01000
+TargetAddr2     equ    0xE01000
 
 org 0x9000
 
@@ -354,12 +354,36 @@ CODE32_SEGMENT:
     mov eax, ObjectAddrV
     mov ebx, TargetAddr1
     mov ecx, PageDirBase0
-    call MapAddress
+    call MapAddress ; map virtual address 0x401000 to physical address 0xD01000
 
     mov eax, ObjectAddrV
     mov ebx, TargetAddr2
     mov ecx, PageDirBase0
-    call MapAddress
+    call MapAddress ; map virtual address 0x401000 to physical address 0xE01000
+
+    mov eax, PageDirBase0
+    call SwitchPageTable
+
+    ; print Page Table 0: 0x401000 => (0xD01000, "hello toy-os")
+    mov ax, FlatModeSelector
+    mov ds, ax
+    mov ebp, ObjectAddrV
+    mov bx, 0x0C
+    mov dh, 12
+    mov dl, 33
+    call FunctionSelector : CG_PrintString 
+
+    ; print Page Table 0: 0x401000 => (0xD01000, "hello world")
+    mov eax, PageDirBase1
+    call SwitchPageTable
+
+    mov ax, FlatModeSelector
+    mov ds, ax
+    mov ebp, ObjectAddrV
+    mov bx, 0x0C
+    mov dh, 13
+    mov dl, 31
+    call FunctionSelector : CG_PrintString 
 
     jmp $ 
 
