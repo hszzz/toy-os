@@ -341,7 +341,27 @@ CODE32_SEGMENT:
     mov ecx, HELLO_LEN
     call MemCpy32
 
-    jmp $ ; x /8bx ds:0 | x /8bx es:0x501000
+    mov eax, PageDirSelector0
+    mov ebx, PageTblSelector0
+    mov ecx, PageTblBase0
+    call InitPageTable
+    
+    mov eax, PageDirSelector1
+    mov ebx, PageTblSelector1
+    mov ecx, PageTblBase1
+    call InitPageTable
+
+    mov eax, ObjectAddrV
+    mov ebx, TargetAddr1
+    mov ecx, PageDirBase0
+    call MapAddress
+
+    mov eax, ObjectAddrV
+    mov ebx, TargetAddr2
+    mov ecx, PageDirBase0
+    call MapAddress
+
+    jmp $ 
 
     mov ebp, TOYOS_OFFSET
     mov bx, 0x0C
@@ -394,6 +414,52 @@ CODE32_SEGMENT:
     push 0
     retf
     ; jmp $
+
+; map virtual address to physical address 
+; es    --> flat mode
+; eax   --> virtual address
+; ebx   --> target address
+; ecx   --> page directory base
+MapAddress:
+    push edi
+    push esi
+    push eax  ; [esp + 8]
+    push ebx  ; [esp + 4]
+    push ecx  ; [esp]
+
+    ; 1. Take the high 10 bits of the virtual address
+    ;    and calculate the position of the subpage table in the page directory
+    mov eax, [esp + 8]
+    shr eax, 22 ; >> 22
+    and eax, 1111111111b
+    shl eax, 2 ; << 2
+
+    ; 2. Take the middle 10 bits of the virtual address 
+    ;    and calculate the position of the physical address in the subpage table
+    mov ebx, [esp + 8]
+    shr ebx, 12
+    and ebx, 1111111111b
+    shr ebx, 2
+
+    ; 3. Take the starting position of the subpage table
+    mov esi, [esp]
+    add esi, eax
+    mov edi, [es:esi]
+    and edi, 0xFFFFF000
+
+    ; 4. Write the target address to the location of the subpage table
+    and edi, ebx   
+    mov ecx, [esp + 4]
+    and ecx, 0xFFFFF000
+    or  ecx, PG_P | PG_USU | PG_RWW
+    mov [es:edi], ecx
+
+    pop ecx
+    pop ebx
+    pop eax
+    pop esi
+    pop edi
+    ret
 
 ; memory copy under protected mode
 ; es    --> flat mode selector
