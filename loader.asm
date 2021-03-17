@@ -371,7 +371,7 @@ CODE32_SEGMENT:
     mov bx, 0x0C
     mov dh, 12
     mov dl, 33
-    call FunctionSelector : CG_PrintString 
+    call PrintString1 
 
     ; print Page Table 0: 0x401000 => (0xD01000, "hello world")
     mov eax, PageDirBase1
@@ -383,7 +383,7 @@ CODE32_SEGMENT:
     mov bx, 0x0C
     mov dh, 13
     mov dl, 31
-    call FunctionSelector : CG_PrintString 
+    call PrintString1
 
     jmp $ 
 
@@ -603,6 +603,38 @@ SwitchPageTable:
 
     pop eax
     ret
+
+PrintString1:
+    push ebp
+    push edi
+    push dx
+    push cx
+    push eax
+
+print1:
+    mov cl, [ds:ebp]
+    cmp cl, 0
+    je end1
+    mov eax, 80
+    mul dh
+    add al, dl
+    shl eax, 1
+    mov edi, eax
+    mov ah, bl
+    mov al, cl
+    mov [gs:edi], ax
+    inc ebp
+    inc dl
+    jmp print1
+
+end1:
+    pop eax
+    pop cx
+    pop dx
+    pop edi
+    pop ebp
+    ret
+;PrintString1    equ    PrintString1 - $$
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
