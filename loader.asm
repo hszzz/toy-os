@@ -44,6 +44,9 @@ PAGE_TBL_DESC1 : Descriptor PageTblBase1,   1023,            DA_DRW + DA_LIMIT_4
 
 ; flat memory mode
 FLAT_MODE_DESC : Descriptor 0,            0xFFFFF,           DA_DRW + DA_LIMIT_4K + DA_32
+
+; system memory data Desc
+SYS_DAT_DESC  : Descriptor 0,        Sysdat32SegLen - 1,       DA_DR + DA_32
 ; GDT Definition END
 
 GDT_LEN    equ    $ - GDT_ENTRY
@@ -78,6 +81,9 @@ PageTblSelector1   equ    (0x000E << 3) + SA_TIG + SA_RPL0
 
 ; flat mode selector
 FlatModeSelector   equ    (0x000F << 3) + SA_TIG + SA_RPL0
+
+; sysdat segment selector 
+SysDatSelector     equ    (0x0010 << 3) + SA_TIG + SA_RPL0
 ; GDT Selector END
 
 ; TSS
@@ -111,8 +117,20 @@ DATA32_SEGMENT:
     HELLO_OFFSET equ HELLO - $$
 DataSegmentLen equ $ - DATA32_SEGMENT
 
-; storage memory size
-MEM_SIZE    times 4 db 0
+; storage memory information
+[section .sysdat]
+[bits 32]
+SYSDAT_SEGMENT:
+    MEM_SIZE times 4 db 0
+    MEM_SIZE_OFFSET equ MEM_SIZE - $$
+
+    MEM_ARDS_NUM times 4 db 0
+    MEM_ARDS_NUM_OFFSET equ MEM_ARDS_NUM - $$
+
+    MEM_ARDS times 64*20 db 0
+    MEM_ARDS_OFFSET equ MEM_ARDS - $$
+
+Sysdat32SegLen equ $ - SYSDAT_SEGMENT
 
 [section .s16]
 [bits 16]
@@ -124,7 +142,8 @@ ENTRY_SEGMENT:
     mov sp, TopOfStack16
 
     ; get physical memory size
-    call GetMemSize
+    ; call GetMemSize
+    call InitSysDat
 
     ; HACK TRICK
     ; replace 0 whit cs
@@ -174,6 +193,11 @@ ENTRY_SEGMENT:
     ; initialize TSS_DESC
     mov esi, TSS_SEGMENT
     mov edi, TSS_DESC
+    call InitDescItem
+
+    ; initialize SYS_DAT_DESC
+    mov esi, SYSDAT_SEGMENT
+    mov edi, SYS_DAT_DESC
     call InitDescItem
 
     ; initialize GDT pointer struct
@@ -235,7 +259,65 @@ BACK_ENTRY_SEGMENT:
 
     jmp $
 
-; get physical memory size
+; get physical memory size to sysdat by ARDS(0xE820)
+; return :
+;    eax --> 0: ok; 1: error
+InitSysDat:
+    push edi
+    push ebx
+    push ecx
+    push edx
+
+    call GetMemSize
+
+    mov edi, MEM_ARDS
+    mov ebx, 0 ; !!!!!
+
+doloop:
+    mov eax, 0xE820
+    mov edx, 0x534D4150
+    mov ecx, 20
+
+    int 0x15
+
+    jc memerr
+
+    cmp dword [edi + 16], 1 ; ensure ARDS type == 1, which is means system can use
+    jne next
+
+    mov eax, [edi]
+    add eax, [edi + 8] ; BaseAddrLow + LengthLow
+
+    cmp dword [MEM_SIZE], eax
+    jnb next
+
+    mov dword [MEM_SIZE], eax
+
+next:
+    add edi, 20
+    inc dword [MEM_ARDS_NUM]
+
+    cmp ebx, 0
+    jne doloop
+
+    mov eax, 0
+
+    jmp memok 
+
+memerr:
+    mov dword [MEM_SIZE], 0
+    mov dword [MEM_ARDS_NUM], 0
+    mov eax, 1
+
+memok:
+    pop edx
+    pop ecx
+    pop ebx
+    pop edi
+    
+    ret
+
+; get physical memory size by 0xE801
 GetMemSize:
     push eax
     push ebx
@@ -251,9 +333,9 @@ GetMemSize:
     
     jc geterr
 
-    shl eax, 10
+    shl eax, 10 ;(1KB) 0 ~ 15MB 
 
-    shl ebx, 6
+    shl ebx, 6  ;(64KB) > 16MB
     shl ebx, 10
 
     mov ecx, 1
