@@ -111,6 +111,9 @@ DATA32_SEGMENT:
     HELLO_OFFSET equ HELLO - $$
 DataSegmentLen equ $ - DATA32_SEGMENT
 
+; storage memory size
+MEM_SIZE    times 4 db 0
+
 [section .s16]
 [bits 16]
 ENTRY_SEGMENT:
@@ -119,6 +122,9 @@ ENTRY_SEGMENT:
     mov es, ax
     mov ss, ax
     mov sp, TopOfStack16
+
+    ; get physical memory size
+    call GetMemSize
 
     ; HACK TRICK
     ; replace 0 whit cs
@@ -228,6 +234,47 @@ BACK_ENTRY_SEGMENT:
     int 0x10
 
     jmp $
+
+; get physical memory size
+GetMemSize:
+    push eax
+    push ebx
+    push ecx
+    push edx
+
+    mov dword [MEM_SIZE], 0
+
+   	xor eax, eax ; let cf = 0
+    mov eax, 0xE801
+
+    int 0x15
+    
+    jc geterr
+
+    shl eax, 10
+
+    shl ebx, 6
+    shl ebx, 10
+
+    mov ecx, 1
+    shl ecx, 20 ; ecx = 1MB (16MB)
+
+    add dword [MEM_SIZE], eax
+    add dword [MEM_SIZE], ebx
+    add dword [MEM_SIZE], ecx
+
+    jmp getok
+
+geterr:
+    mov dword [MEM_SIZE], 0
+
+getok:
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret
+
 ; esi --> code segment label
 ; edi --> descript label
 InitDescItem:
