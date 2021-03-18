@@ -259,7 +259,8 @@ BACK_ENTRY_SEGMENT:
 
     jmp $
 
-; get physical memory size to sysdat by ARDS(0xE820)
+; get physical memory size to sysdat by ARDS(0xE820) and 0xE801
+; MAX(0xE820, 0xE801)
 ; return :
 ;    eax --> 0: ok; 1: error
 InitSysDat:
