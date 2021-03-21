@@ -86,6 +86,15 @@ FlatModeSelector   equ    (0x000F << 3) + SA_TIG + SA_RPL0
 SysDatSelector     equ    (0x0010 << 3) + SA_TIG + SA_RPL0
 ; GDT Selector END
 
+[section .idt]
+align 32
+[bits 32]
+LABEL_IDT:
+
+IdtLen    equ    $ - LABEL_IDT
+IdtPtr    dw     IdtLen - 1
+          dd     0
+
 ; TSS
 [section .tss]
 [bits 32]
