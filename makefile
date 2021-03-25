@@ -4,7 +4,7 @@ BOOT_SRC := boot.asm
 BOOT_OUT := boot
 
 LOADER_SRC := loader.asm
-LOADER_INC := inc.asm
+LOADER_INC := common.asm
 LOADER_OUT := loader
 
 IMG := data.img
