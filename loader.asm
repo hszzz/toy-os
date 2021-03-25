@@ -1,4 +1,4 @@
-%include "inc.asm"
+%include "common.asm"
 
 PageDirBase0    equ    0x200000
 PageTblBase0    equ    0x201000
