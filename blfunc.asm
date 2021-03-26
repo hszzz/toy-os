@@ -3,7 +3,7 @@ jmp short _start
 nop
 
 header:
-    BS_OEMName     db "HSZZZ.ME"
+    BS_OEMName     db "HSZZZ   "
     BPB_BytsPerSec dw 512
     BPB_SecPerClus db 1
     BPB_RsvdSecCnt dw 1

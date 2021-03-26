@@ -67,10 +67,10 @@ $(KERNEL_OUT) : $(EXE)
 	sudo umount $(IMG_PATH)
 	
 $(EXE) : $(KENTRY_OUT) $(OBJS)
-	ld -s $^ -o $@
+	ld -m elf_i386 -s $^ -o $@
 	
 $(DIR_OBJS)/%.o : %.c
-	gcc -fno-builtin -fno-stack-protector -o $@ -c $(filter %.c, $^)
+	gcc -m32 -fno-builtin -fno-stack-protector -o $@ -c $(filter %.c, $^)
 
 $(DIRS) :
 	mkdir $@

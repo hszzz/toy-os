@@ -28,7 +28,7 @@ output:
     mov cx, ErrLen
 	call Print
 
-Error db "Not Found Loader"
+Error db "No Loader"
 ErrLen equ $ - Error
 
 Buffer:

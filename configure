@@ -6,3 +6,7 @@ sudo apt-get install nasm
 
 sudo apt-get install bximage
 
+sudo apt-get install lib32stdc++6
+
+sudo apt-get install lib32z1
+
