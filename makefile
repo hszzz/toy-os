@@ -1,56 +1,92 @@
+
 .PHONY : all clean rebuild
 
-BOOT_SRC := boot.asm
-BOOT_OUT := boot
-
-LOADER_SRC := loader.asm
-LOADER_INC := common.asm
-LOADER_OUT := loader
-
-IMG := data.img
+KERNEL_ADDR := B000
+IMG := TOY-OS
 IMG_PATH := /mnt/hgfs
 
-LOG_PATH := log
-BOCHS := bochs
-MKDIR := mkdir
+DIR_DEPS := deps
+DIR_EXES := exes
+DIR_OBJS := objs
 
-REVERSE_PATH := reverse
+DIRS := $(DIR_DEPS) $(DIR_EXES) $(DIR_OBJS)
 
-RM := rm -fr
+KENTRY_SRC := kentry.asm
+BLFUNC_SRC := blfunc.asm
+BOOT_SRC   := boot.asm
+LOADER_SRC := loader.asm
+COMMON_SRC := common.asm
 
-all : $(IMG) $(BOOT_OUT) $(LOADER_OUT)
-	@echo "build success"
+KERNEL_SRC := kmain.c
+
+BOOT_OUT   := boot
+LOADER_OUT := loader
+KERNEL_OUT := kernel
+KENTRY_OUT := $(DIR_OBJS)/kentry.o
+
+EXE := kernel.out
+EXE := $(addprefix $(DIR_EXES)/, $(EXE))
+
+SRCS := $(wildcard *.c)
+OBJS := $(SRCS:.c=.o)
+OBJS := $(addprefix $(DIR_OBJS)/, $(OBJS))
+DEPS := $(SRCS:.c=.dep)
+DEPS := $(addprefix $(DIR_DEPS)/, $(DEPS))
+
+all : $(DIR_OBJS) $(DIR_EXES) $(IMG) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
+	@echo "build toy-os sucess!"
+	
+ifeq ("$(MAKECMDGOALS)", "all")
+-include $(DEPS)
+endif
+
+ifeq ("$(MAKECMDGOALS)", "")
+-include $(DEPS)
+endif
 
 $(IMG) :
 	bximage $@ -q -fd -size=1.44
 	
-$(BOOT_OUT) : $(BOOT_SRC)
-	nasm $^ -o $@
+$(BOOT_OUT) : $(BOOT_SRC) $(BLFUNC_SRC)
+	nasm $< -o $@
 	dd if=$@ of=$(IMG) bs=512 count=1 conv=notrunc
 	
-$(LOADER_OUT) : $(LOADER_SRC) $(LOADER_INC)
+$(LOADER_OUT) : $(LOADER_SRC) $(COMMON_SRC) $(BLFUNC_SRC)
 	nasm $< -o $@
 	sudo mount -o loop $(IMG) $(IMG_PATH)
 	sudo cp $@ $(IMG_PATH)/$@
 	sudo umount $(IMG_PATH)
 	
+$(KENTRY_OUT) : $(KENTRY_SRC) $(COMMON_SRC)
+	nasm -f elf $< -o $@
+    
+$(KERNEL_OUT) : $(EXE)
+	./elf2kobj -c$(KERNEL_ADDR) $< $@
+	sudo mount -o loop $(IMG) $(IMG_PATH)
+	sudo cp $@ $(IMG_PATH)/$@
+	sudo umount $(IMG_PATH)
+	
+$(EXE) : $(KENTRY_OUT) $(OBJS)
+	ld -s $^ -o $@
+	
+$(DIR_OBJS)/%.o : %.c
+	gcc -fno-builtin -fno-stack-protector -o $@ -c $(filter %.c, $^)
+
+$(DIRS) :
+	mkdir $@
+
+ifeq ("$(wildcard $(DIR_DEPS))", "")
+$(DIR_DEPS)/%.dep : $(DIR_DEPS) %.c
+else
+$(DIR_DEPS)/%.dep : %.c
+endif
+	@echo "creating $@ ..."
+	@set -e; \
+	gcc -MM -E $(filter %.c, $^) | sed 's,\(.*\)\.o[ :]*,objs/\1.o $@ : ,g' > $@
+	
 clean :
-	$(RM) $(IMG) $(BOOT_OUT) $(LOADER_OUT)
-	$(RM) $(LOG_PATH)
-	$(RM) $(REVERSE_PATH)
+	rm -fr $(IMG) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT) $(DIRS)
 	
 rebuild :
 	@$(MAKE) clean
 	@$(MAKE) all
-
-bochs : all
-	$(MKDIR) $(LOG_PATH)
-	$(BOCHS) -q -f .bochsrc -log log/bochs.log
-
-reverse : $(LOADER_OUT)
-	$(MKDIR) $(REVERSE_PATH)
-	@ndisasm -o 0x9000 $< > $(REVERSE_PATH)/reverse.txt
-
-reverse32 : $(LOADER_OUT)
-	$(MKDIR) $(REVERSE_PATH)
-	@ndisasm -b 32 -o 0x9000 $< > $(REVERSE_PATH)/reverse.txt
