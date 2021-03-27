@@ -7,7 +7,8 @@ LD := ld
 CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 		-funsigned-char  -finline-functions -finline-small-functions \
 		-findirect-inlining -finline-functions-called-once \
-		-ggdb -gstabs+ -fdump-rtl-expand \
+		-ggdb -gstabs+ -fdump-rtl-expand 
+
 LD_SCRI := -T./scripts/link.lds 
 
 IMG := toy-os
