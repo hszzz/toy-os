@@ -8,8 +8,9 @@ CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 		-funsigned-char  -finline-functions -finline-small-functions \
 		-findirect-inlining -finline-functions-called-once \
 		-ggdb -gstabs+ -fdump-rtl-expand \
+LD_SCRI := -T./scripts/link.lds 
 
-IMG := TOY-OS
+IMG := toy-os
 IMG_PATH := /mnt/hgfs
 
 DIR_DEPS := deps
@@ -74,7 +75,7 @@ $(KERNEL_OUT) : $(EXE)
 	sudo umount $(IMG_PATH)
 	
 $(EXE) : $(KENTRY_OUT) $(OBJS)
-	$(LD) -Tlink.lds -m elf_i386 -s $^ -o $@
+	$(LD) $(LD_SCRI) -m elf_i386 -s $^ -o $@
 	
 $(DIR_OBJS)/%.o : %.c
 	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
