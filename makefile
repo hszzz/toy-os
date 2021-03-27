@@ -1,5 +1,13 @@
-
 .PHONY : all clean rebuild
+
+CC := gcc
+AS := nasm
+LD := ld
+
+CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
+		-funsigned-char  -finline-functions -finline-small-functions \
+		-findirect-inlining -finline-functions-called-once \
+		-ggdb -gstabs+ -fdump-rtl-expand \
 
 IMG := TOY-OS
 IMG_PATH := /mnt/hgfs
@@ -47,17 +55,17 @@ $(IMG) :
 	bximage $@ -q -fd -size=1.44
 	
 $(BOOT_OUT) : $(BOOT_SRC) $(BLFUNC_SRC)
-	nasm -f bin $< -o $@
+	$(AS) -f bin $< -o $@
 	dd if=$@ of=$(IMG) bs=512 count=1 conv=notrunc
 	
 $(LOADER_OUT) : $(LOADER_SRC) $(COMMON_SRC) $(BLFUNC_SRC)
-	nasm -f bin $< -o $@
+	$(AS) -f bin $< -o $@
 	sudo mount -o loop $(IMG) $(IMG_PATH)
 	sudo cp $@ $(IMG_PATH)/$@
 	sudo umount $(IMG_PATH)
 	
 $(KENTRY_OUT) : $(KENTRY_SRC) $(COMMON_SRC)
-	nasm -f elf32 $< -o $@
+	$(AS) -f elf32 $< -o $@
     
 $(KERNEL_OUT) : $(EXE)
 	objcopy -O binary $< $@
@@ -66,14 +74,10 @@ $(KERNEL_OUT) : $(EXE)
 	sudo umount $(IMG_PATH)
 	
 $(EXE) : $(KENTRY_OUT) $(OBJS)
-	ld -Tlink.lds -m elf_i386 -s $^ -o $@
+	$(LD) -Tlink.lds -m elf_i386 -s $^ -o $@
 	
 $(DIR_OBJS)/%.o : %.c
-	gcc -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
-		-funsigned-char  -finline-functions -finline-small-functions \
-		-findirect-inlining -finline-functions-called-once \
-		-ggdb -gstabs+ -fdump-rtl-expand \
-		-o $@ -c $(filter %.c, $^)
+	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
 
 $(DIRS) :
 	mkdir $@
@@ -85,10 +89,14 @@ $(DIR_DEPS)/%.dep : %.c
 endif
 	@echo "creating $@ ..."
 	@set -e; \
-	gcc -MM -E $(filter %.c, $^) | sed 's,\(.*\)\.o[ :]*,objs/\1.o $@ : ,g' > $@
+	$(CC) -MM -E $(filter %.c, $^) | sed 's,\(.*\)\.o[ :]*,objs/\1.o $@ : ,g' > $@
 	
 clean :
-	rm -fr $(IMG) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT) $(DIRS)
+	rm -fr $(IMG)
+	rm -fr $(BOOT_OUT) 
+	rm -fr $(LOADER_OUT)
+	rm -fr $(KERNEL_OUT)
+	rm -fr $(DIRS)
 	
 rebuild :
 	@$(MAKE) clean
