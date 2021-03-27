@@ -1,7 +1,6 @@
 
 .PHONY : all clean rebuild
 
-KERNEL_ADDR := B000
 IMG := TOY-OS
 IMG_PATH := /mnt/hgfs
 
@@ -48,29 +47,33 @@ $(IMG) :
 	bximage $@ -q -fd -size=1.44
 	
 $(BOOT_OUT) : $(BOOT_SRC) $(BLFUNC_SRC)
-	nasm $< -o $@
+	nasm -f bin $< -o $@
 	dd if=$@ of=$(IMG) bs=512 count=1 conv=notrunc
 	
 $(LOADER_OUT) : $(LOADER_SRC) $(COMMON_SRC) $(BLFUNC_SRC)
-	nasm $< -o $@
+	nasm -f bin $< -o $@
 	sudo mount -o loop $(IMG) $(IMG_PATH)
 	sudo cp $@ $(IMG_PATH)/$@
 	sudo umount $(IMG_PATH)
 	
 $(KENTRY_OUT) : $(KENTRY_SRC) $(COMMON_SRC)
-	nasm -f elf $< -o $@
+	nasm -f elf32 $< -o $@
     
 $(KERNEL_OUT) : $(EXE)
-	./elf2kobj -c$(KERNEL_ADDR) $< $@
+	objcopy -O binary $< $@
 	sudo mount -o loop $(IMG) $(IMG_PATH)
 	sudo cp $@ $(IMG_PATH)/$@
 	sudo umount $(IMG_PATH)
 	
 $(EXE) : $(KENTRY_OUT) $(OBJS)
-	ld -m elf_i386 -s $^ -o $@
+	ld -Tlink.lds -m elf_i386 -s $^ -o $@
 	
 $(DIR_OBJS)/%.o : %.c
-	gcc -m32 -fno-builtin -fno-stack-protector -o $@ -c $(filter %.c, $^)
+	gcc -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
+		-funsigned-char  -finline-functions -finline-small-functions \
+		-findirect-inlining -finline-functions-called-once \
+		-ggdb -gstabs+ -fdump-rtl-expand \
+		-o $@ -c $(filter %.c, $^)
 
 $(DIRS) :
 	mkdir $@
