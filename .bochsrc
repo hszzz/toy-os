@@ -8,7 +8,7 @@ romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
 vgaromimage: file=/usr/share/vgabios/vgabios.bin
 
 # what disk images will be used
-floppya: 1_44=data.img, status=inserted
+floppya: 1_44=TOY-OS, status=inserted
 
 # choose the boot disk.
 boot: floppy
