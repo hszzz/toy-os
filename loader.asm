@@ -11,8 +11,10 @@ TarLen       equ $-Target
 [section .gdt]
 ; GDT definition
 GDT_ENTRY            :     Descriptor    0,    0,                    0
-CODE32_FLAT_DESC     :     Descriptor    0,    0xFFFFF,              DA_C + DA_32
-CODE32_DESC          :     Descriptor    0,    Code32SegmentLen - 1, DA_C + DA_32
+CODE32_FLAT_DESC     :     Descriptor    0,    0xFFFFF,              DA_C + DA_32 + DA_DPL0
+CODE32_DESC          :     Descriptor    0,    Code32SegmentLen - 1, DA_C + DA_32 + DA_DPL0
+GRAPHICS_DESC        :     Descriptor    0xB8000, 0x07FFF,           DA_DRWA + DA_32 + DA_DPL0
+DATA32_FLAT_DESC     :     Descriptor    0,    0xFFFFF,              DA_DRW + DA_32 + DA_DPL0
 ; GDT end
 
 GdtLen    equ   $ - GDT_ENTRY
@@ -25,8 +27,8 @@ GDT_PTR:
 ; GDT Selector
 Code32FlatSelector    equ (0x0001 << 3) + SA_TIG + SA_RPL0
 Code32Selector        equ (0x0002 << 3) + SA_TIG + SA_RPL0
-
-
+GraphicsSelector      equ (0x0003 << 3) + SA_TIG + SA_RPL0
+Data32FlatSelector    equ (0x0004 << 3) + SA_TIG + SA_RPL0
 ; end of [section .gdt]
 
 
@@ -112,6 +114,18 @@ InitDescItem:
 [section .s32]
 [bits 32]
 CODE32_SEGMENT:
+    mov ax, GraphicsSelector
+    mov gs, ax
+
+    mov ax, Data32FlatSelector
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+
+    mov ax, Data32FlatSelector
+    mov ss, ax
+    mov esp, BaseOfStack
+
     jmp dword Code32FlatSelector : BaseOfTarget
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
