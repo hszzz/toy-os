@@ -108,9 +108,25 @@ int printString(const char* s)
 
 int printInt16(int i)
 {
-	int ret = 0;
+	int i = 0;
+	char hex[11] = {'0', 'x', 0};
+	for (i=9; i>=2; i--)
+	{
+		int p = n & 0xF; // low 4 bits
 
-	return ret;
+		if (p < 10)
+		{
+			hex[i] = '0' + p;
+		}
+		else
+		{
+			hex[i] = 'A' + p - 10;
+		}
+
+		n = n >> 4;
+	}
+
+	return printString(hex);
 }
 
 int printInt10(int n)

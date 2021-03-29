@@ -8,4 +8,5 @@ void KMain()
 
 	printString("hello toy-os!\n");
 	printInt10(666);
+	printInt16(666);
 }
