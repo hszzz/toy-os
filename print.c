@@ -106,7 +106,7 @@ int printString(const char* s)
 	return ret;
 }
 
-int printInt16(int i)
+int printInt16(int n)
 {
 	int i = 0;
 	char hex[11] = {'0', 'x', 0};
