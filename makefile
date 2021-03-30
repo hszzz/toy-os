@@ -11,14 +11,14 @@ CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 
 LD_SCRI := -T./scripts/link.lds 
 
-IMG := toy-os
-IMG_PATH := /mnt/hgfs
-
 DIR_DEPS := deps
 DIR_EXES := exes
 DIR_OBJS := objs
 
 DIRS := $(DIR_DEPS) $(DIR_EXES) $(DIR_OBJS)
+
+IMG := toy-os
+IMG_PATH := /mnt/hgfs
 
 KENTRY_SRC := kentry.asm
 BLFUNC_SRC := blfunc.asm
@@ -81,8 +81,8 @@ $(EXE) : $(KENTRY_OUT) $(OBJS)
 $(DIR_OBJS)/%.o : %.c
 	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
 
-$(DIRS) :
-	mkdir $@
+$(DIRS) : 
+	mkdir  $@
 
 ifeq ("$(wildcard $(DIR_DEPS))", "")
 $(DIR_DEPS)/%.dep : $(DIR_DEPS) %.c
@@ -94,11 +94,11 @@ endif
 	$(CC) -MM -E $(filter %.c, $^) | sed 's,\(.*\)\.o[ :]*,objs/\1.o $@ : ,g' > $@
 	
 clean :
-	rm -fr $(IMG)
-	rm -fr $(BOOT_OUT) 
+	rm -fr $(DIRS)
+	rm -fr $(BOOT_OUT)
 	rm -fr $(LOADER_OUT)
 	rm -fr $(KERNEL_OUT)
-	rm -fr $(DIRS)
+	rm -fr $(IMG)
 	
 rebuild :
 	@$(MAKE) clean

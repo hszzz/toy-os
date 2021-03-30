@@ -13,6 +13,26 @@ int setPrintPosition(int w, int h)
 	{
 		printPosW = w;
 		printPosH = h;
+		
+		unsigned short bx = SCREEN_WIDTH * h + w;
+        asm volatile(
+            "movw %0,      %%bx\n"
+            "movw $0x03D4, %%dx\n"
+            "movb $0x0E,   %%al\n"
+            "outb %%al,    %%dx\n"
+            "movw $0x03D5, %%dx\n"
+            "movb %%bh,    %%al\n"
+            "outb %%al,    %%dx\n"
+            "movw $0x03D4, %%dx\n"
+            "movb $0x0F,   %%al\n"
+            "outb %%al,    %%dx\n"
+            "movw $0x03D5, %%dx\n"
+            "movb %%bl,    %%al\n"
+            "outb %%al,    %%dx\n"
+            :
+            : "r"(bx)
+            : "ax", "bx", "dx"
+        );
 	}
 
 	return ret;
