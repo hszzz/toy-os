@@ -58,6 +58,8 @@ BLMain:
 	cmp dx, 0
 	jz output
 
+    call StoreGdt
+
     ; 1. load GDT
     lgdt [GDT_PTR]
     
@@ -109,6 +111,13 @@ InitDescItem:
     
     pop eax
     
+    ret
+
+; store GDT to shared memory
+StoreGdt:
+    mov eax, dword [GDT_PTR + 2]
+    mov dword [GdtEntry], eax
+    mov dword [GdtSize], GdtLen / 8
     ret
     
 [section .s32]

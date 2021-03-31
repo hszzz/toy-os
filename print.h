@@ -1,7 +1,7 @@
 #ifndef PRINT_H
 #define PRINT_H
 
-#define NULL ((void*)0)
+#include "const.h"
 
 #define SCREEN_WIDTH  80
 #define SCREEN_HEIGHT 25
