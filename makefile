@@ -1,105 +1,57 @@
-.PHONY : all clean rebuild
+.PHONY : all clean
 
-CC := gcc
+IMAGE := toy-os
+IMAGE_PATH := /mnt/hgfs
+
 AS := nasm
+CC := gcc
 LD := ld
 
+MKDIR := mkdir
+CP    := cp
+RM    := rm -rf
+
 CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
-		-funsigned-char  -finline-functions -finline-small-functions \
-		-findirect-inlining -finline-functions-called-once \
-		-ggdb -gstabs+ -fdump-rtl-expand 
+	-funsigned-char -finline-functions -finline-small-functions \
+	-findirect-inlining -finline-functions-called-once \
+	-ggdb -gstabs+ -fdump-rtl-expand
 
-LD_SCRI := -T./scripts/link.lds 
+LD_SCRIPT  := scripts/link.lds
 
-DIR_DEPS := deps
-DIR_EXES := exes
-DIR_OBJS := objs
+BOOT_SRC   := bl/boot.asm
+LOADER_SRC := bl/loader.asm
+BLFUNC_SRC := bl/blfunc.asm
+COMMON_SRC := bl/common.asm
 
-DIRS := $(DIR_DEPS) $(DIR_EXES) $(DIR_OBJS)
+BUILD_DIR  := build
 
-IMG := toy-os
-IMG_PATH := /mnt/hgfs
+BOOT_OUT   := $(BUILD_DIR)/boot
+LOADER_OUT := $(BUILD_DIR)/loader
+KERNEL_OUT := $(BUILD_DIR)/kernel
 
-KENTRY_SRC := kentry.asm
-BLFUNC_SRC := blfunc.asm
-BOOT_SRC   := boot.asm
-LOADER_SRC := loader.asm
-COMMON_SRC := common.asm
+all : $(BUILD_DIR) $(IMAGE)
 
-KERNEL_SRC := kmain.c
-
-BOOT_OUT   := boot
-LOADER_OUT := loader
-KERNEL_OUT := kernel
-KENTRY_OUT := $(DIR_OBJS)/kentry.o
-
-EXE := kernel.out
-EXE := $(addprefix $(DIR_EXES)/, $(EXE))
-
-SRCS := $(wildcard *.c)
-OBJS := $(SRCS:.c=.o)
-OBJS := $(addprefix $(DIR_OBJS)/, $(OBJS))
-DEPS := $(SRCS:.c=.dep)
-DEPS := $(addprefix $(DIR_DEPS)/, $(DEPS))
-
-all : $(DIR_OBJS) $(DIR_EXES) $(IMG) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
-	@echo "build toy-os sucess!"
-	
-ifeq ("$(MAKECMDGOALS)", "all")
--include $(DEPS)
-endif
-
-ifeq ("$(MAKECMDGOALS)", "")
--include $(DEPS)
-endif
-
-$(IMG) :
-	bximage $@ -q -fd -size=1.44
-	
 $(BOOT_OUT) : $(BOOT_SRC) $(BLFUNC_SRC)
-	$(AS) -f bin $< -o $@
-	dd if=$@ of=$(IMG) bs=512 count=1 conv=notrunc
-	
-$(LOADER_OUT) : $(LOADER_SRC) $(COMMON_SRC) $(BLFUNC_SRC)
-	$(AS) -f bin $< -o $@
-	sudo mount -o loop $(IMG) $(IMG_PATH)
-	sudo cp $@ $(IMG_PATH)/$@
-	sudo umount $(IMG_PATH)
-	
-$(KENTRY_OUT) : $(KENTRY_SRC) $(COMMON_SRC)
-	$(AS) -f elf32 $< -o $@
-    
-$(KERNEL_OUT) : $(EXE)
-	objcopy -O binary $< $@
-	sudo mount -o loop $(IMG) $(IMG_PATH)
-	sudo cp $@ $(IMG_PATH)/$@
-	sudo umount $(IMG_PATH)
-	
-$(EXE) : $(KENTRY_OUT) $(OBJS)
-	$(LD) $(LD_SCRI) -m elf_i386 -s $^ -o $@
-	
-$(DIR_OBJS)/%.o : %.c
-	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
+	@echo "build boot ..."
+	$(AS) -I ./bl/ -f bin $< -o $@ 
 
-$(DIRS) : 
-	mkdir  $@
+$(LOADER_OUT) : $(LOADER_SRC) $(BLFUNC_SRC) $(COMMON_SRC)
+	@echo "build loader ..."
+	$(AS) -I ./bl/ -f bin $< -o $@
 
-ifeq ("$(wildcard $(DIR_DEPS))", "")
-$(DIR_DEPS)/%.dep : $(DIR_DEPS) %.c
-else
-$(DIR_DEPS)/%.dep : %.c
-endif
-	@echo "creating $@ ..."
-	@set -e; \
-	$(CC) -MM -E $(filter %.c, $^) | sed 's,\(.*\)\.o[ :]*,objs/\1.o $@ : ,g' > $@
-	
+$(IMAGE) : $(BOOT_OUT) $(LOADER_OUT)
+	@echo "create os image ..."
+	bximage $@ -q -fd -size=1.44
+	@echo "create MBR ..."
+	dd if=$(BOOT_OUT) of=$@ bs=512 count=1 conv=notrunc
+	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
+	@echo "copy loader to image"
+	sudo cp $(LOADER_OUT) $(IMAGE_PATH)/$(LOADER_OUT)
+	sudo umount $(IMAGE_PATH)
+
+$(BUILD_DIR) : 
+	@$(MKDIR) $@
+
 clean :
-	rm -fr $(DIRS)
-	rm -fr $(BOOT_OUT)
-	rm -fr $(LOADER_OUT)
-	rm -fr $(KERNEL_OUT)
-	rm -fr $(IMG)
-	
-rebuild :
-	@$(MAKE) clean
-	@$(MAKE) all
+	@$(RM) $(BUILD_DIR)
+

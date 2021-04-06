@@ -1,4 +1,4 @@
-#include "print.h"
+#include "kprint.h"
 
 static int printPosW = 0;
 static int printPosH = 0;
@@ -34,7 +34,6 @@ int setPrintPosition(int w, int h)
             : "ax", "bx", "dx"
         );
 	}
-
 	return ret;
 }
 
@@ -56,7 +55,6 @@ void clearScreen()
 			printChar(' ');
 		}
 	}
-
 	setPrintPosition(0, 0);
 }
 
