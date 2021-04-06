@@ -46,7 +46,7 @@ $(IMAGE) : $(BOOT_OUT) $(LOADER_OUT)
 	dd if=$(BOOT_OUT) of=$@ bs=512 count=1 conv=notrunc
 	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
 	@echo "copy loader to image"
-	sudo cp $(LOADER_OUT) $(IMAGE_PATH)/$(LOADER_OUT)
+	sudo cp $(LOADER_OUT) $(IMAGE_PATH)/loader
 	sudo umount $(IMAGE_PATH)
 
 $(BUILD_DIR) : 
