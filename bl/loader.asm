@@ -4,7 +4,7 @@ org 0x9000
 %include "common.asm"
 
 BaseOfStack  equ 0x9000
-BaseOfTarget equ 0xC000
+BaseOfTarget equ 0xD000
 Target       db  "KERNEL     "
 TarLen       equ $-Target
 

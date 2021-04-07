@@ -12,11 +12,11 @@ CP    := cp
 RM    := rm -rf
 
 CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
-	-funsigned-char -finline-functions -finline-small-functions \
-	-findirect-inlining -finline-functions-called-once \
-	-ggdb -gstabs+ -fdump-rtl-expand -I ./include
+		-funsigned-char  -finline-functions -finline-small-functions \
+		-findirect-inlining -finline-functions-called-once \
+		-ggdb -gstabs+ -fdump-rtl-expand -I./include
 
-LD_SCRIPT  := scripts/link.lds
+LD_SCRIPT  := -T./scripts/link.lds
 
 BOOT_SRC   := bl/boot.asm
 LOADER_SRC := bl/loader.asm
@@ -57,7 +57,7 @@ $(LOADER_OUT) : $(LOADER_SRC) $(BLFUNC_SRC) $(COMMON_SRC)
 $(KENTRY_OUT) : $(KENTRY_SRC) $(COMMON_SRC)
 	$(AS) -I ./bl/ -f elf32 $< -o $@
 
-$(BUILD_DIR)/%.o : %.c
+$(BUILD_DIR)/%.o : kernel/%.c
 	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
 
 $(KERNEL_OUT) : $(OBJS) $(KENTRY_OUT) 
