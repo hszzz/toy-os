@@ -1,4 +1,4 @@
-.PHONY : all clean
+.PHONY : all clean rebuild
 
 IMAGE := toy-os
 IMAGE_PATH := /mnt/hgfs
@@ -29,29 +29,34 @@ BOOT_OUT   := $(BUILD_DIR)/boot
 LOADER_OUT := $(BUILD_DIR)/loader
 KERNEL_OUT := $(BUILD_DIR)/kernel
 
-all : $(BUILD_DIR) $(IMAGE)
+all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT)
+	
+$(IMAGE) : 
+	@echo "create os image ..."
+	bximage $@ -q -fd -size=1.44
 
 $(BOOT_OUT) : $(BOOT_SRC) $(BLFUNC_SRC)
 	@echo "build boot ..."
 	$(AS) -I ./bl/ -f bin $< -o $@ 
+	@echo "create MBR ..."
+	dd if=$@ of=$(IMAGE) bs=512 count=1 conv=notrunc
 
 $(LOADER_OUT) : $(LOADER_SRC) $(BLFUNC_SRC) $(COMMON_SRC)
 	@echo "build loader ..."
 	$(AS) -I ./bl/ -f bin $< -o $@
-
-$(IMAGE) : $(BOOT_OUT) $(LOADER_OUT)
-	@echo "create os image ..."
-	bximage $@ -q -fd -size=1.44
-	@echo "create MBR ..."
-	dd if=$(BOOT_OUT) of=$@ bs=512 count=1 conv=notrunc
 	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
 	@echo "copy loader to image"
-	sudo cp $(LOADER_OUT) $(IMAGE_PATH)/loader
+	sudo cp $@ $(IMAGE_PATH)/loader
 	sudo umount $(IMAGE_PATH)
 
 $(BUILD_DIR) : 
 	@$(MKDIR) $@
 
+rebuild :
+	$(MAKE) clean
+	$(MAKE) all
+
 clean :
 	@$(RM) $(BUILD_DIR)
+	@$(RM) $(IMAGE)
 
