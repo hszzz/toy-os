@@ -4,7 +4,5 @@
 void KMain()
 {
 	clearScreen();
-	for (; ;)
-	{
-	}
+	printString("123");
 }

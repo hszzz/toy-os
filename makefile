@@ -57,7 +57,7 @@ $(LOADER_OUT) : $(LOADER_SRC) $(BLFUNC_SRC) $(COMMON_SRC)
 $(KENTRY_OUT) : $(KENTRY_SRC) $(COMMON_SRC)
 	$(AS) -I ./bl/ -f elf32 $< -o $@
 
-$(BUILD_DIR)/%.o : kernel/%.c
+$(BUILD_DIR)/%.o : */%.c
 	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
 
 $(KERNEL_OUT) : $(OBJS) $(KENTRY_OUT) 
