@@ -11,10 +11,10 @@ MKDIR := mkdir
 CP    := cp
 RM    := rm -rf
 
-CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
+CFLAGS := -I./include -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 		-funsigned-char  -finline-functions -finline-small-functions \
 		-findirect-inlining -finline-functions-called-once \
-		-ggdb -gstabs+ -fdump-rtl-expand -I./include
+		-ggdb -gstabs+ -fdump-rtl-expand 
 
 LD_SCRIPT  := -T./scripts/link.lds
 
@@ -62,7 +62,7 @@ $(BUILD_DIR)/%.o : */%.c
 
 $(KERNEL_OUT) : $(OBJS) $(KENTRY_OUT) 
 	@echo "link all of .o"
-	$(LD) $(LD_SCRIPT) -m elf_i386 -s $^ -o $(BUILD_DIR)/kernel.out
+	$(LD) $(LD_SCRIPT) -melf_i386 -static $^ -o $(BUILD_DIR)/kernel.out
 	objcopy -O binary $(BUILD_DIR)/kernel.out $@
 	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
 	sudo cp $@ $(IMAGE_PATH)/kernel

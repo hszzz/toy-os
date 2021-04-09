@@ -3,6 +3,11 @@
 
 void KMain()
 {
-	clearScreen();
+	printString("123");
+	printString("123");
+	printString("123");
+	printString("123");
+	printString("123");
+	printString("123");
 	printString("123");
 }
