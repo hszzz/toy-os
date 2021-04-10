@@ -90,7 +90,8 @@ SLAVE_ISR_PORT    equ    0xA0
 ; store GDT to shared momory
 ; so that kernel can load GDT dynamicly 
 ; used to build processes
-BaseOfSharedMemory equ 0xB000
+
+BaseOfSharedMemory equ 0xA000
 
 GdtEntry     equ BaseOfSharedMemory
 GdtSize      equ BaseOfSharedMemory + 4
