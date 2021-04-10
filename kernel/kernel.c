@@ -1,10 +1,12 @@
 #include "kernel.h"
 
+gdtInfo gGdtInfo = {0};
+
 int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
 {
 	int ret = 0;
 
-	if (ret = (desc == NULL))
+	if ((ret = (desc == NULL)))
 	{
 		desc->limit1       = limit & 0xFFFF;
 		desc->base1        = base & 0xFFFF;
@@ -21,7 +23,7 @@ int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr)
 {
 	int ret = 0;
 
-	if (ret = (desc && base && limit && attr))
+	if ((ret = (desc && base && limit && attr)))
 	{
 		*base  = (desc->base3 << 24) | (desc->base2 << 16) | desc->base1;
 		*limit = ((desc->attr2_limit2 & 0xF) << 16) | desc->limit1;

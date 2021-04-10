@@ -20,6 +20,8 @@ typedef struct
 	const int         size;
 } gdtInfo;
 
+extern gdtInfo gGdtInfo;
+
 typedef struct
 {
 	uint gs;
