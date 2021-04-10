@@ -26,51 +26,50 @@ KENTRY_SRC := kernel/kentry.asm
 
 BUILD_DIR  := build
 
+KERNEL_ELF := $(BUILD_DIR)/kernel.out
 BOOT_OUT   := $(BUILD_DIR)/boot
 LOADER_OUT := $(BUILD_DIR)/loader
 KERNEL_OUT := $(BUILD_DIR)/kernel
 KENTRY_OUT := $(BUILD_DIR)/kentry.o
 
 OBJS := $(BUILD_DIR)/kmain.o \
-	$(BUILD_DIR)/kprint.o
+	$(BUILD_DIR)/kprint.o \
+	$(BUILD_DIR)/kernel.o 
 
 all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
 	
-$(IMAGE) : 
-	@echo "create os image ..."
+$(IMAGE) :
 	bximage $@ -q -fd -size=1.44
 
 $(BOOT_OUT) : $(BOOT_SRC) $(BLFUNC_SRC)
-	@echo "build boot ..."
-	$(AS) -I ./bl/ -f bin $< -o $@ 
-	@echo "create MBR ..."
+	$(AS) -I./bl/ -f bin $< -o $@
 	dd if=$@ of=$(IMAGE) bs=512 count=1 conv=notrunc
 
-$(LOADER_OUT) : $(LOADER_SRC) $(BLFUNC_SRC) $(COMMON_SRC)
-	@echo "build loader ..."
-	$(AS) -I ./bl/ -f bin $< -o $@
+$(LOADER_OUT) : $(LOADER_SRC) $(COMMON_SRC) $(BLFUNC_SRC)
+	$(AS) -I./bl/ -f bin $< -o $@
 	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
-	@echo "copy loader to image"
 	sudo cp $@ $(IMAGE_PATH)/loader
 	sudo umount $(IMAGE_PATH)
-
+	
 $(KENTRY_OUT) : $(KENTRY_SRC) $(COMMON_SRC)
-	$(AS) -I ./bl/ -f elf32 $< -o $@
-
-$(BUILD_DIR)/%.o : */%.c
-	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
-
-$(KERNEL_OUT) : $(OBJS) $(KENTRY_OUT) 
-	@echo "link all of .o"
-	$(LD) $(LD_SCRIPT) -melf_i386 -static $^ -o $(BUILD_DIR)/kernel.out
-	objcopy -O binary $(BUILD_DIR)/kernel.out $@
-	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
-	sudo cp $@ $(IMAGE_PATH)/kernel
-	sudo umount $(IMAGE_PATH)
+	$(AS) -I./bl/ -f elf32 $< -o $@
 
 $(BUILD_DIR) : 
 	@$(MKDIR) $@
 
+$(KERNEL_OUT) : $(KERNEL_ELF)
+	objcopy -O binary $< $@
+	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
+	sudo cp $@ $(IMAGE_PATH)/kernel
+	sudo umount $(IMAGE_PATH)
+	
+$(BUILD_DIR)/%.o : */%.c
+	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
+
+$(KERNEL_ELF) : $(KENTRY_OUT) $(OBJS)
+	$(LD) $(LD_SCRIPT) -m elf_i386 -s  $^ -o $@
+	
+	
 rebuild :
 	$(MAKE) clean
 	$(MAKE) all
