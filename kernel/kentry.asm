@@ -16,6 +16,8 @@ _start:
     
     jmp $
 
+; store GDT entry in shared memory to gGdtInfo in kernel
+; kernel can visit all of GDT through GDT entry
 InitGdt:
     push ebp
     mov ebp, esp
@@ -25,6 +27,6 @@ InitGdt:
     mov eax, dword [GdtSize]
     mov [gGdtInfo + 4], eax
     
-    leave
+    leave  ;
     
     ret
