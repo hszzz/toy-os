@@ -259,8 +259,8 @@ noequal:
 Print:
     mov dx, 0
     mov ax, 0x1301
-	mov bx, 0x0007
-	int 0x10
+    mov bx, 0x0007
+    int 0x10
     ret
 
 ; no parameter

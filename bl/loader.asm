@@ -10,11 +10,11 @@ TarLen       equ $-Target
 
 [section .gdt]
 ; GDT definition
-GDT_ENTRY            :     Descriptor    0,    0,                    0
-CODE32_FLAT_DESC     :     Descriptor    0,    0xFFFFF,              DA_C + DA_32 + DA_DPL0
-CODE32_DESC          :     Descriptor    0,    Code32SegmentLen - 1, DA_C + DA_32 + DA_DPL0
-GRAPHICS_DESC        :     Descriptor    0xB8000, 0x07FFF,           DA_DRWA + DA_32 + DA_DPL0
-DATA32_FLAT_DESC     :     Descriptor    0,    0xFFFFF,              DA_DRW + DA_32 + DA_DPL0
+GDT_ENTRY          :   Descriptor    0,       0,                    0
+CODE32_FLAT_DESC   :   Descriptor    0,       0xFFFFF,              DA_C + DA_32 + DA_DPL0
+CODE32_DESC        :   Descriptor    0,       Code32SegmentLen - 1, DA_C + DA_32 + DA_DPL0
+GRAPHICS_DESC      :   Descriptor    0xB8000, 0x07FFF,              DA_DRWA + DA_32 + DA_DPL0
+DATA32_FLAT_DESC   :   Descriptor    0,       0xFFFFF,              DA_DRW + DA_32 + DA_DPL0
 ; GDT end
 
 GdtLen    equ   $ - GDT_ENTRY
@@ -25,10 +25,10 @@ GDT_PTR:
           
           
 ; GDT Selector
-Code32FlatSelector    equ (0x0001 << 3) + SA_TIG + SA_RPL0
-Code32Selector        equ (0x0002 << 3) + SA_TIG + SA_RPL0
-GraphicsSelector      equ (0x0003 << 3) + SA_TIG + SA_RPL0
-Data32FlatSelector    equ (0x0004 << 3) + SA_TIG + SA_RPL0
+Code32FlatSelector   equ  (0x0001 << 3) + SA_TIG + SA_RPL0
+Code32Selector       equ  (0x0002 << 3) + SA_TIG + SA_RPL0
+GraphicsSelector     equ  (0x0003 << 3) + SA_TIG + SA_RPL0
+Data32FlatSelector   equ  (0x0004 << 3) + SA_TIG + SA_RPL0
 ; end of [section .gdt]
 
 
@@ -41,6 +41,10 @@ BLMain:
     mov ss, ax
     mov sp, SPInitValue
     
+    mov bp, Msg
+    mov cx, MsgLen
+    call Print
+
     ; initialize GDT for 32 bits code segment
     mov esi, CODE32_SEGMENT
     mov edi, CODE32_DESC
@@ -55,8 +59,8 @@ BLMain:
     
     call LoadTarget
 	
-	cmp dx, 0
-	jz output
+    cmp dx, 0
+    jz output
 
     call StoreGdt
 
@@ -91,9 +95,9 @@ BLMain:
 output:	
     mov bp, Error
     mov cx, ErrLen
-	call Print
+    call Print
 	
-	jmp $
+    jmp $
 
 ; esi --> code segment label
 ; edi --> descriptor label
@@ -139,7 +143,10 @@ CODE32_SEGMENT:
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
-Error db  "No KERNEL"	
+Msg    db  "loadeing ..."
+MsgLen equ $-Msg
+
+Error  db  "No KERNEL"	
 ErrLen equ $-Error
 
 Buffer db  0

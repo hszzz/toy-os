@@ -17,6 +17,10 @@ BLMain:
     mov es, ax
     mov sp, SPInitValue
 
+    mov bp, Msg
+    mov cx, MsgLen
+    call Print
+
     call LoadTarget
 
     cmp dx, 0
@@ -28,7 +32,10 @@ output:
     mov cx, ErrLen
 	call Print
 
-Error db "No Loader"
+Msg    db  "booting ..."
+MsgLen equ $ - Msg
+
+Error  db  "No Loader"
 ErrLen equ $ - Error
 
 Buffer:
