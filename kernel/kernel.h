@@ -20,7 +20,6 @@ typedef struct
 	const int         size;
 } gdtInfo;
 
-extern gdtInfo gGdtInfo;
 
 typedef struct
 {
@@ -59,8 +58,8 @@ typedef struct
 	regValue   rv;
 	Descriptor ldt[3];
 	TSS        tss;
-	ushort     ldtSelectot;
-	ushort     tssSelectot;
+	ushort     ldtSelector;
+	ushort     tssSelector;
 	uint       id;
 	char       name[8];
 	byte       stack[512];
@@ -69,5 +68,7 @@ typedef struct
 int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr);
 int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 
+extern gdtInfo gGdtInfo;
+extern void (* const RunProcess)(Process* pt);
 #endif
 

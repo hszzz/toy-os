@@ -16,7 +16,7 @@ typedef enum
 	PRINT_WHITE  = 0x0F
 } PrintColor;
 
-int setPosition(int w, int h);
+int setPrintPosition(int w, int h);
 void setPrintColor(PrintColor);
 
 void clearScreen();

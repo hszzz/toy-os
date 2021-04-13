@@ -6,10 +6,13 @@ extern KMain
 extern gGdtInfo
 extern clearScreen
 
+extern RunProcess
+
 [section .text]
 [bits 32]
 _start:
     mov ebp, 0 
+
     call InitGdt
     call clearScreen
     call KMain
@@ -26,7 +29,10 @@ InitGdt:
     mov [gGdtInfo], eax
     mov eax, dword [GdtSize]
     mov [gGdtInfo + 4], eax
-    
-    leave  ;
+
+    mov eax, dword [RunProcessEntry]
+    mov dword [RunProcess], eax
+
+    leave  
     
     ret
