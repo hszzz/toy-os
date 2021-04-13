@@ -93,9 +93,9 @@ SLAVE_ISR_PORT    equ    0xA0
 
 BaseOfSharedMemory equ 0xA000
 
-GdtEntry     equ BaseOfSharedMemory
-GdtSize      equ BaseOfSharedMemory + 4
-LdtEntry     equ BaseOfSharedMemory + 8
-LdtSize      equ BaseOfSharedMemory + 12
-RunTaskEntry equ BaseOfSharedMemory + 16
+GdtEntry        equ BaseOfSharedMemory + 0
+GdtSize         equ BaseOfSharedMemory + 4
+LdtEntry        equ BaseOfSharedMemory + 8
+LdtSize         equ BaseOfSharedMemory + 12
+RunProcessEntry equ BaseOfSharedMemory + 16 
 

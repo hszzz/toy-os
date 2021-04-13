@@ -4,6 +4,7 @@
 org 0x7c00
 
 %include "blfunc.asm"
+%include "common.asm"
 
 BaseOfStack  equ 0x7c00
 BaseOfTarget equ 0x9000
@@ -17,10 +18,6 @@ BLMain:
     mov es, ax
     mov sp, SPInitValue
 
-    mov bp, Msg
-    mov cx, MsgLen
-    call Print
-
     call LoadTarget
 
     cmp dx, 0
@@ -31,9 +28,7 @@ output:
     mov bp, Error
     mov cx, ErrLen
 	call Print
-
-Msg    db  "booting ..."
-MsgLen equ $ - Msg
+    jmp $
 
 Error  db  "No Loader"
 ErrLen equ $ - Error

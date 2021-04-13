@@ -11,10 +11,14 @@ TarLen       equ $-Target
 [section .gdt]
 ; GDT definition
 GDT_ENTRY          :   Descriptor    0,       0,                    0
-CODE32_FLAT_DESC   :   Descriptor    0,       0xFFFFF,              DA_C + DA_32 + DA_DPL0
 CODE32_DESC        :   Descriptor    0,       Code32SegmentLen - 1, DA_C + DA_32 + DA_DPL0
 GRAPHICS_DESC      :   Descriptor    0xB8000, 0x07FFF,              DA_DRWA + DA_32 + DA_DPL0
+CODE32_FLAT_DESC   :   Descriptor    0,       0xFFFFF,              DA_C + DA_32 + DA_DPL0
 DATA32_FLAT_DESC   :   Descriptor    0,       0xFFFFF,              DA_DRW + DA_32 + DA_DPL0
+
+; these two descriptor can load a process dynamicly
+TASK_LDT_DESC      :   Descriptor    0,       0,                    0
+TASK_TSS_DESC      :   Descriptor    0,       0,                    0
 ; GDT end
 
 GdtLen    equ   $ - GDT_ENTRY
@@ -25,10 +29,10 @@ GDT_PTR:
           
           
 ; GDT Selector
-Code32FlatSelector   equ  (0x0001 << 3) + SA_TIG + SA_RPL0
-Code32Selector       equ  (0x0002 << 3) + SA_TIG + SA_RPL0
-GraphicsSelector     equ  (0x0003 << 3) + SA_TIG + SA_RPL0
-Data32FlatSelector   equ  (0x0004 << 3) + SA_TIG + SA_RPL0
+Code32Selector      equ  (0x0001 << 3) + SA_TIG + SA_RPL0
+GraphicsSelector    equ  (0x0002 << 3) + SA_TIG + SA_RPL0
+Code32FlatSelector  equ  (0x0003 << 3) + SA_TIG + SA_RPL0
+Data32FlatSelector  equ  (0x0004 << 3) + SA_TIG + SA_RPL0
 ; end of [section .gdt]
 
 
@@ -41,10 +45,6 @@ BLMain:
     mov ss, ax
     mov sp, SPInitValue
     
-    mov bp, Msg
-    mov cx, MsgLen
-    call Print
-
     ; initialize GDT for 32 bits code segment
     mov esi, CODE32_SEGMENT
     mov edi, CODE32_DESC
@@ -119,11 +119,40 @@ InitDescItem:
 
 ; store GDT to shared memory
 StoreGdt:
+    ; store RunProcess to shared memory
+	; due to kernel wants to switch process
+    mov dword [RunProcessEntry], RunProcess
+
     mov eax, dword [GDT_PTR + 2]
     mov dword [GdtEntry], eax
     mov dword [GdtSize], GdtLen / 8
     ret
     
+; function in this segment 
+; will be called by kernel
+[section .func]
+[bits 32]
+; RunProcess(Process* p)
+RunProcess:
+    push ebp
+    mov  ebp, esp
+
+    mov  esp, [ebp + 8] 
+
+    lldt word [esp + 200]
+    ltr  word [esp + 202]
+
+    ; store previous process context
+    pop gs
+    pop fs
+    pop es
+    pop ds
+
+    popad
+
+    add esp, 4
+    iret
+
 [section .s32]
 [bits 32]
 CODE32_SEGMENT:
@@ -142,9 +171,6 @@ CODE32_SEGMENT:
     jmp dword Code32FlatSelector : BaseOfTarget
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
-
-Msg    db  "loadeing ..."
-MsgLen equ $-Msg
 
 Error  db  "No KERNEL"	
 ErrLen equ $-Error
