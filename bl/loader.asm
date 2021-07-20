@@ -152,10 +152,82 @@ StoreGdt:
     mov dword [GdtEntry], eax
     mov dword [GdtSize], GdtLen / 8
     ret
+
+; this segment define interrupt functions 
+[section .ifunc]
+[bits 32]
+Delay:
+    %rep 5
+    nop
+    %endrep
+    ret
+
+Init8259A:
+    push ax
     
+    mov al, 00010001B
+    out MASTER_ICW1_PORT, al
+    call Delay
+
+    mov al, 0x20
+    out MASTER_ICW2_PORT, al
+    call Delay
+
+    mov al, 00000100B
+    out MASTER_ICW3_PORT, al
+    call Delay
+
+    mov al, 00010001B
+    out MASTER_ICW4_PORT, al
+    call Delay
+
+    mov al, 00010001B
+    out SLAVE_ICW1_PORT, al
+    call Delay
+
+    mov al, 0x28
+    out SLAVE_ICW2_PORT, al
+    call Delay
+
+    mov al, 00000010B
+    out SLAVE_ICW3_PORT, al
+    call Delay
+
+    mov al, 00000001B
+    out SLAVE_ICW4_PORT, al
+    call Delay
+
+    pop ax
+    ret
+
+; al -> IMR register value
+; dx -> 8259a port
+WriteIMR:
+    out dx, al
+    call Delay
+    ret
+
+; dx -> 8259a
+;    return ax -> IMR register value
+ReadIMR:
+    in ax, dx
+    call Delay
+    ret
+
+; dx -> 8259a port
+WriteEOI:
+    push ax
+
+    mov al, 0x20
+    out dx, al
+    call Delay
+
+    pop ax
+    ret
+
 ; function in this segment 
 ; will be called by kernel
-[section .func]
+[section .kfunc]
 [bits 32]
 ; RunProcess(Process* p)
 RunProcess:
