@@ -27,7 +27,7 @@ BLMain:
 output:
     mov bp, Error
     mov cx, ErrLen
-	call Print
+    call Print
     jmp $
 
 Error  db  "No Loader"

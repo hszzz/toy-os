@@ -69,7 +69,6 @@ $(BUILD_DIR)/%.o : */%.c
 $(KERNEL_ELF) : $(KENTRY_OUT) $(OBJS)
 	$(LD) $(LD_SCRIPT) -m elf_i386 -s  $^ -o $@
 	
-	
 rebuild :
 	$(MAKE) clean
 	$(MAKE) all
