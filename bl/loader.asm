@@ -33,8 +33,23 @@ Code32Selector      equ  (0x0001 << 3) + SA_TIG + SA_RPL0
 GraphicsSelector    equ  (0x0002 << 3) + SA_TIG + SA_RPL0
 Code32FlatSelector  equ  (0x0003 << 3) + SA_TIG + SA_RPL0
 Data32FlatSelector  equ  (0x0004 << 3) + SA_TIG + SA_RPL0
-; end of [section .gdt]
+; end of gdt section
 
+[section .idt]
+align 32
+[bits 32]
+IDT_ENTRY:
+%rep 256
+    Gate    Code32Selector,    DefaultHandler,     0,    DA_386IGate + DA_DPL0
+%endrep
+
+IdtLen    equ    $ - IDT_ENTRY
+
+IDT_PTR:
+    dw IdtLen - 1
+    dd 0
+
+; end of idt section
 
 [section .s16]
 [bits 16]
@@ -56,7 +71,14 @@ BLMain:
     shl eax, 4
     add eax, GDT_ENTRY
     mov dword [GDT_PTR + 2], eax
-    
+
+    ; initialize IDT pointer struct
+    mov eax, 0
+    mov ax, ds
+    shl eax, 4
+    add eax, IDT_ENTRY
+    mov dword [IDT_PTR + 2], eax
+
     call LoadTarget
 	
     cmp dx, 0
@@ -70,7 +92,10 @@ BLMain:
     ; 2. close interrupt
     ;    set IOPL to 3
     cli 
-    
+
+    ; load IDT
+    lidt [IDT_PTR]
+
     pushf
     pop eax
     
@@ -169,6 +194,12 @@ CODE32_SEGMENT:
     mov esp, BaseOfStack
 
     jmp dword Code32FlatSelector : BaseOfTarget
+
+; default interrupt handler
+DefaultHandlerFunc:
+    iret
+
+DefaultHandler    equ    DefaultHandlerFunc - $$
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
