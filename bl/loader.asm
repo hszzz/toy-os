@@ -250,6 +250,29 @@ RunProcess:
     add esp, 4
     iret
 
+; init 8259a interrupt in kernel
+InitInterrupt:
+    push ebp
+    mov ebp, esp
+
+    push ax
+    push dx
+
+    call Init8259A
+
+    sti ; open interrupt
+
+    mov ax, 0xFF
+    mov dx, MASTER_IMR_PORT
+    call WriteIMR
+
+    mov ax, 0xFF
+    mov dx, SLAVE_IMR_PORT
+    call WriteIMR
+
+    leave
+    ret
+
 [section .s32]
 [bits 32]
 CODE32_SEGMENT:
