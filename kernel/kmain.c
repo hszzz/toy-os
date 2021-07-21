@@ -1,6 +1,8 @@
 #include "kernel.h"
 #include "kprint.h"
 
+#include "logo.h"
+
 Process p = {0};
 
 void Delay(int n)
@@ -41,6 +43,7 @@ void TaskA()
 
 void KMain()
 {
+	printLogo();
     printString("TOS-OS!\n");
     uint base = 0;
     uint limit = 0;
