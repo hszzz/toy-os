@@ -28,13 +28,13 @@ void TaskA()
 {
     int i = 0;
     
-    setPrintPosition(0, 12);
+    setPrintPosition(0, 16);
     
     printString("Task A: ");
     
     while(1)
     {
-        setPrintPosition(8, 12);
+        setPrintPosition(8, 16);
         printChar('A' + i);
         i = (i + 1) % 26;
         Delay(1);
@@ -44,7 +44,7 @@ void TaskA()
 void KMain()
 {
 	printLogo();
-    printString("TOS-OS!\n");
+
     uint base = 0;
     uint limit = 0;
     ushort attr = 0;
@@ -102,5 +102,7 @@ void KMain()
     printString("    Stack Top: ");
     printInt16((uint)p.stack + sizeof(p.stack));
     
+    printChar('\n');
+
     RunProcess(&p);
 }
