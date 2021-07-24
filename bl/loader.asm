@@ -84,7 +84,7 @@ BLMain:
     cmp dx, 0
     jz output
 
-    call StoreGdt
+    call StoreGlobalFunc
 
     ; 1. load GDT
     lgdt [GDT_PTR]
@@ -143,14 +143,24 @@ InitDescItem:
     ret
 
 ; store GDT to shared memory
-StoreGdt:
+StoreGlobalFunc:
     ; store RunProcess to shared memory
 	; due to kernel wants to switch process
     mov dword [RunProcessEntry], RunProcess
 
+    mov dword [InitInterruptEntry], InitInterrupt
+    mov dword [EnableTimerEntry], EnableTimer
+
+    ; store gdt to sharedmemory
     mov eax, dword [GDT_PTR + 2]
     mov dword [GdtEntry], eax
     mov dword [GdtSize], GdtLen / 8
+
+    ; store gdt to sharedmemory
+    mov eax, dword [IDT_PTR + 2]
+    mov dword [IdtEntry], eax
+    mov dword [IdtSize], GdtLen / 8
+
     ret
 
 ; this segment define interrupt functions 
@@ -269,6 +279,28 @@ InitInterrupt:
     mov ax, 0xFF
     mov dx, SLAVE_IMR_PORT
     call WriteIMR
+
+    pop dx
+    pop ax
+
+    leave
+    ret
+
+EnableTimer:
+    push ebp
+    mov ebp, esp
+
+    push ax
+    push dx
+
+    mov dx, MASTER_IMR_PORT
+    call ReadIMR
+
+    and ax, 0xFE
+    call WriteIMR
+
+    pop dx
+    pop ax
 
     leave
     ret
