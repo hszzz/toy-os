@@ -3,6 +3,10 @@
 
 #include "logo.h"
 
+
+void (* const InitInterrupt)() = NULL;
+void (* const EnableTimer)() = NULL;
+
 Process p = {0};
 
 void Delay(int n)
@@ -54,6 +58,18 @@ void KMain()
     printInt16((uint)gGdtInfo.entry);
     printChar('\n');
     
+    printString("GDT Size: ");
+    printInt16((uint)gGdtInfo.size);
+    printChar('\n');
+
+    printString("IDT Entry: ");
+    printInt16((uint)gIdtInfo.entry);
+    printChar('\n');
+    
+    printString("GDT Size: ");
+    printInt16((uint)gIdtInfo.size);
+    printChar('\n');
+
     for(i=0; i<gGdtInfo.size; i++)
     {
         getDescValue(gGdtInfo.entry + i, &base, &limit, &attr);
