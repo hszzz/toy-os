@@ -1,6 +1,7 @@
 #include "kernel.h"
 
 gdtInfo gGdtInfo = {0};
+IdtInfo gIdtInfo = {0};
 void (* const RunProcess)(Process* pt) = NULL;
 
 int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr)

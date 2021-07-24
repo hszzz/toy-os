@@ -20,6 +20,20 @@ typedef struct
 	const int         size;
 } gdtInfo;
 
+typedef struct
+{
+    ushort offset1;
+    ushort selector;
+    byte dcount;
+    byte attr;
+    ushort offset2;
+} Gate;
+
+typedef struct
+{
+    Gate* const entry;
+    const int   size;
+} IdtInfo;
 
 typedef struct
 {
@@ -69,6 +83,7 @@ int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr);
 int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 
 extern gdtInfo gGdtInfo;
+extern IdtInfo gIdtInfo;
 extern void (* const RunProcess)(Process* pt);
 #endif
 
