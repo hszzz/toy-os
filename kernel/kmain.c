@@ -113,12 +113,9 @@ void KMain()
     setDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT + DA_DPL0);
     setDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&p.tss, sizeof(p.tss)-1, DA_386TSS + DA_DPL0);
     
-    printString("Stack Bottom: ");
-    printInt16((uint)p.stack);
-    printString("    Stack Top: ");
-    printInt16((uint)p.stack + sizeof(p.stack));
-    
+    // InitInterrupt();
+    // EnableTimer();
+   
     printChar('\n');
-
     RunProcess(&p);
 }
