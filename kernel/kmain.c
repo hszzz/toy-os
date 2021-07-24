@@ -59,7 +59,7 @@ void KMain()
     printChar('\n');
     
     printString("GDT Size: ");
-    printInt16((uint)gGdtInfo.size);
+    printInt10((uint)gGdtInfo.size);
     printChar('\n');
 
     printString("IDT Entry: ");
@@ -67,7 +67,7 @@ void KMain()
     printChar('\n');
     
     printString("GDT Size: ");
-    printInt16((uint)gIdtInfo.size);
+    printInt10((uint)gIdtInfo.size);
     printChar('\n');
 
     for(i=0; i<gGdtInfo.size; i++)

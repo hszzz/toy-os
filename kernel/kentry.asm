@@ -4,6 +4,7 @@ global _start
 
 extern KMain
 extern gGdtInfo
+extern gIdtInfo
 extern clearScreen
 
 extern RunProcess
@@ -15,7 +16,7 @@ extern EnableTimer
 _start:
     mov ebp, 0 
 
-    call InitGdt
+    call InitGlobal
     call clearScreen
     call KMain
     

@@ -159,7 +159,7 @@ StoreGlobalFunc:
     ; store gdt to sharedmemory
     mov eax, dword [IDT_PTR + 2]
     mov dword [IdtEntry], eax
-    mov dword [IdtSize], GdtLen / 8
+    mov dword [IdtSize], IdtLen / 8
 
     ret
 
