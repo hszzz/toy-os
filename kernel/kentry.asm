@@ -42,10 +42,10 @@ InitGlobal:
     mov dword [RunProcess], eax
 
     mov eax, dword [InitInterruptEntry]
-    mov dword [InitInterrupt], eax
+    mov [InitInterrupt], eax
 
     mov eax, dword [EnableTimerEntry]
-    mov dword [EnableTimer], eax
+    mov [EnableTimer], eax
 
     leave  
     

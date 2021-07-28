@@ -32,13 +32,13 @@ void TaskA()
 {
     int i = 0;
     
-    setPrintPosition(0, 16);
+    setPrintPosition(0, 19);
     
     printString("Task A: ");
     
     while(1)
     {
-        setPrintPosition(8, 16);
+        setPrintPosition(8, 19);
         printChar('A' + i);
         i = (i + 1) % 26;
         Delay(1);
@@ -100,7 +100,7 @@ void KMain()
     p.rv.eflags = 0x3002;
     
     p.tss.ss0 = GDT_DATA32_FLAT_SELECTOR;
-    p.tss.esp0 = 0;
+    p.tss.esp0 = 0x9000;
     p.tss.iomb = sizeof(p.tss);
     
     setDescValue(p.ldt + LDT_GRAPHICS_INDEX,  0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
@@ -113,9 +113,9 @@ void KMain()
     setDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT + DA_DPL0);
     setDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&p.tss, sizeof(p.tss)-1, DA_386TSS + DA_DPL0);
     
-    // InitInterrupt();
+    InitInterrupt();
     // EnableTimer();
-   
+
     printChar('\n');
     RunProcess(&p);
 }

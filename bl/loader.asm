@@ -270,7 +270,8 @@ InitInterrupt:
 
     call Init8259A
 
-    sti ; open interrupt
+    ; open interrupt
+    sti 
 
     mov ax, 0xFF
     mov dx, MASTER_IMR_PORT
