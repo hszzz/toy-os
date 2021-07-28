@@ -85,5 +85,7 @@ int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 extern gdtInfo gGdtInfo;
 extern IdtInfo gIdtInfo;
 extern void (* const RunProcess)(Process* pt);
+extern void (* const InitInterrupt)();
+extern void (* const EnableTimer)();
 #endif
 

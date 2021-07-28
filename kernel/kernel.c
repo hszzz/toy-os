@@ -3,6 +3,8 @@
 gdtInfo gGdtInfo = {0};
 IdtInfo gIdtInfo = {0};
 void (* const RunProcess)(Process* pt) = NULL;
+void (* const InitInterrupt)() = NULL;
+void (* const EnableTimer)() = NULL;
 
 int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
 {

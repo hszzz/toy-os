@@ -164,7 +164,7 @@ StoreGlobalFunc:
     ret
 
 ; this segment define interrupt functions 
-[section .ifunc]
+[section .sfunc]
 [bits 32]
 Delay:
     %rep 5
@@ -237,7 +237,7 @@ WriteEOI:
 
 ; function in this segment 
 ; will be called by kernel
-[section .kfunc]
+[section .gfunc]
 [bits 32]
 ; RunProcess(Process* p)
 RunProcess:
