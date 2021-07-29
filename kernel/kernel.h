@@ -82,10 +82,14 @@ typedef struct
 int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr);
 int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 
+int SetInterruptHandler(Gate* gate, uint func);
+int GetInterruptHandler(Gate* gate, uint* func);
+
 extern gdtInfo gGdtInfo;
 extern IdtInfo gIdtInfo;
 extern void (* const RunProcess)(Process* pt);
 extern void (* const InitInterrupt)();
 extern void (* const EnableTimer)();
+extern void (* const SendEOI)(uint port);
 #endif
 
