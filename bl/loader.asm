@@ -150,6 +150,7 @@ StoreGlobalFunc:
 
     mov dword [InitInterruptEntry], InitInterrupt
     mov dword [EnableTimerEntry], EnableTimer
+    mov dword [SendEOIEntry], SendEOI
 
     ; store gdt to sharedmemory
     mov eax, dword [GDT_PTR + 2]
@@ -164,7 +165,7 @@ StoreGlobalFunc:
     ret
 
 ; this segment define interrupt functions 
-[section .sfunc]
+[section .ifunc]
 [bits 32]
 Delay:
     %rep 5
@@ -237,7 +238,7 @@ WriteEOI:
 
 ; function in this segment 
 ; will be called by kernel
-[section .gfunc]
+[section .kfunc]
 [bits 32]
 ; RunProcess(Process* p)
 RunProcess:
@@ -302,6 +303,18 @@ EnableTimer:
 
     pop dx
     pop ax
+
+    leave
+    ret
+
+; void SendEOI(uint port);
+SendEOI:
+    push ebp
+    mov ebp, esp
+
+    mov edx, [ebp + 8]
+    mov al, 0x20
+    out dx, al
 
     leave
     ret

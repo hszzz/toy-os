@@ -87,22 +87,18 @@ SLAVE_IMR_PORT    equ    0xA1
 SLAVE_IRR_PORT    equ    0xA0
 SLAVE_ISR_PORT    equ    0xA0
 
+
 ; store GDT to shared momory
 ; so that kernel can load GDT dynamicly 
 ; used to build processes
-
 BaseOfSharedMemory equ 0xA000
 
 GdtEntry             equ    BaseOfSharedMemory + 0
 GdtSize              equ    BaseOfSharedMemory + 4
 IdtEntry             equ    BaseOfSharedMemory + 8
 IdtSize              equ    BaseOfSharedMemory + 12
-; LdtEntry             equ    BaseOfSharedMemory + 8
-; LdtSize              equ    BaseOfSharedMemory + 12
 RunProcessEntry      equ    BaseOfSharedMemory + 16 
 InitInterruptEntry   equ    BaseOfSharedMemory + 20
 EnableTimerEntry     equ    BaseOfSharedMemory + 24
-; IdtEntry             equ    BaseOfSharedMemory + 28
-; IdtSize              equ    BaseOfSharedMemory + 32
-
+SendEOIEntry         equ    BaseOfSharedMemory + 28
 
