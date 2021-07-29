@@ -10,6 +10,7 @@ extern clearScreen
 extern RunProcess
 extern InitInterrupt
 extern EnableTimer
+extern SendEOI
 
 [section .text]
 [bits 32]
@@ -46,6 +47,9 @@ InitGlobal:
 
     mov eax, dword [EnableTimerEntry]
     mov [EnableTimer], eax
+
+    mov eax, dword [SendEOIEntry]
+    mov [SendEOI], eax
 
     leave  
     
