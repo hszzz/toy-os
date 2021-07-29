@@ -10,7 +10,7 @@ void printLogo()
 	printString(" | __/ _ \\| | | |/ _ \\/ __|\n");
 	printString(" | |_ (_) | |_| | (_) \\__ \\\n");
 	printString("  \\__\\___/ \\__, |\\___/|___/\n");
-	printString("           |___/           \n");
+	printString("           |___/                  by hszzz\n");
 }
 
 #endif // LOG_H
