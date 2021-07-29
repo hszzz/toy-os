@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "kprint.h"
+#include "const.h"
 
 #include "logo.h"
 
@@ -42,10 +43,33 @@ void TaskA()
     }
 }
 
+void TimerHandler()
+{
+	static uint i = 0;
+
+	i = (i + 1) % 10;
+
+    setPrintPosition(0, 16);
+	printString("Task B: ");
+
+	if (i == 0) 
+	{
+		static uint j = 0;
+		setPrintPosition(0, 16);
+		printString("Timer: ");
+
+		setPrintPosition(8, 16);
+		printInt10(j++);
+	}
+
+	SendEOI(MASTER_EOI_PORT);
+	asm volatile ("leave\n""iret\n");
+}
+
 void KMain()
 {
-	printLogo();
-    
+    printLogo();
+
     printString("GDT Entry: ");
     printInt16((uint)gGdtInfo.entry);
     printChar('\n');
@@ -62,16 +86,22 @@ void KMain()
     printInt10((uint)gIdtInfo.size);
     printChar('\n');
 
-    
     printString("runProcess: ");
     printInt16((uint)RunProcess);
     printChar('\n');
-
 
     printString("InitInterrupt: ");
     printInt16((uint)InitInterrupt);
     printChar('\n');
     
+    printString("EnableTimer: ");
+    printInt16((uint)EnableTimer);
+    printChar('\n');
+
+    printString("SendEOI: ");
+    printInt16((uint)SendEOI);
+    printChar('\n');
+
     p.rv.cs = LDT_CODE32_SELECTOR;
     p.rv.gs = LDT_GRAPHICS_SELECTOR;
     p.rv.ds = LDT_DATA32_SELECTOR;
@@ -81,22 +111,24 @@ void KMain()
     
     p.rv.esp = (uint)p.stack + sizeof(p.stack);
     p.rv.eip = (uint)TaskA;
-    p.rv.eflags = 0x3002;
+    p.rv.eflags = 0x3202;
     
     p.tss.ss0 = GDT_DATA32_FLAT_SELECTOR;
     p.tss.esp0 = 0x9000;
     p.tss.iomb = sizeof(p.tss);
     
-    setDescValue(p.ldt + LDT_GRAPHICS_INDEX,  0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
-    setDescValue(p.ldt + LDT_CODE32_INDEX, 0x00,    0xFFFFF, DA_C + DA_32 + DA_DPL3);
-    setDescValue(p.ldt + LDT_DATA32_INDEX, 0x00,    0xFFFFF, DA_DRW + DA_32 + DA_DPL3);
+    setDescValue(p.ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
+    setDescValue(p.ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
+    setDescValue(p.ldt + LDT_DATA32_INDEX,   0x00,    0xFFFFF, DA_DRW  + DA_32 + DA_DPL3);
     
     p.ldtSelector = GDT_TASK_LDT_SELECTOR;
     p.tssSelector = GDT_TASK_TSS_SELECTOR;
     
-    setDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT + DA_DPL0);
+    setDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT    + DA_DPL0);
     setDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&p.tss, sizeof(p.tss)-1, DA_386TSS + DA_DPL0);
-    
+
+	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandler);
+
     InitInterrupt();
     EnableTimer();
 
