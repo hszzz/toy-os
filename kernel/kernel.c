@@ -3,9 +3,6 @@
 gdtInfo gGdtInfo = {0};
 IdtInfo gIdtInfo = {0};
 void (* const RunProcess)(Process* pt) = NULL;
-void (* const InitInterrupt)() = NULL;
-void (* const EnableTimer)() = NULL;
-void (* const SendEOI)(uint port) = NULL;
 
 int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
 {
@@ -35,28 +32,6 @@ int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr)
 		*attr  = ((desc->attr2_limit2 & 0xF0) << 8) | desc->attr1;
 	}
 
-	return ret;
-}
-
-int SetInterruptHandler(Gate* gate, uint func)
-{
-	int ret = 0;
-
-	if ((ret = (gate != NULL)))
-	{
-		gate->offset1 = func & 0xFFFF;
-		gate->selector = GDT_CODE32_FLAT_SELECTOR;
-		gate->dcount = 0;
-		gate->attr = DA_386IGate + DA_DPL0;
-		gate->offset2 = (func >> 16) & 0xFFFF;
-	}
-
-	return ret;
-}
-
-int GetInterruptHandler(Gate* gate, uint* func) 
-{
-	int ret = 0;
 	return ret;
 }
 
