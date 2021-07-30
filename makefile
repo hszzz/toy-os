@@ -34,7 +34,8 @@ KENTRY_OUT := $(BUILD_DIR)/kentry.o
 
 OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/kprint.o \
-	$(BUILD_DIR)/kernel.o 
+	$(BUILD_DIR)/kernel.o \
+	$(BUILD_DIR)/interrupt.o
 
 all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
 	

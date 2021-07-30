@@ -1,3 +1,4 @@
+#include "interrupt.h"
 #include "kernel.h"
 #include "kprint.h"
 #include "const.h"
