@@ -23,6 +23,12 @@ int SetInterruptHandler(Gate* gate, uint func)
 int GetInterruptHandler(Gate* gate, uint* func) 
 {
 	int ret = 0;
+
+	if ((ret = (gate && func)))
+	{
+		*func = (gate->offset2 << 16) | gate->offset1;
+	}
+
 	return ret;
 }
 
