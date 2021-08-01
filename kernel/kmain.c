@@ -5,8 +5,10 @@
 
 #include "logo.h"
 
-
+Task* gTaskAddr = NULL;
 Task p = {0};
+
+extern void TimerHandlerEntry();
 
 void Delay(int n)
 {
@@ -46,12 +48,12 @@ void TaskA()
 
 void TimerHandler()
 {
-	static uint i = 0;
+    static uint i = 0;
 
-	i = (i + 1) % 10;
+    i = (i + 1) % 10;
 
     SetPrintPosition(0, 16);
-	PrintString("Timer: ");
+    PrintString("Timer: ");
 
 	if (i == 0) 
 	{
@@ -65,7 +67,6 @@ void TimerHandler()
 	}
 
 	SendEOI(MASTER_EOI_PORT);
-	asm volatile ("leave\n""iret\n");
 }
 
 void KMain()
@@ -129,11 +130,11 @@ void KMain()
     SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT    + DA_DPL0);
     SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&p.tss, sizeof(p.tss)-1, DA_386TSS + DA_DPL0);
 
-	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandler);
+	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandlerEntry);
 
     InitInterrupt();
     EnableTimer();
 
-    PrintChar('\n');
-    RunTask(&p);
+    gTaskAddr = &p;
+    RunTask(gTaskAddr);
 }
