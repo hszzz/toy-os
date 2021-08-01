@@ -16,15 +16,15 @@ typedef enum
 	PRINT_WHITE  = 0x0F
 } PrintColor;
 
-int setPrintPosition(int w, int h);
-void setPrintColor(PrintColor);
+int SetPrintPosition(int w, int h);
+void SetPrintColor(PrintColor);
 
-void clearScreen();
+void ClearScreen();
 
-int printChar(char);
-int printString();
-int printInt10();
-int printInt16();
+int PrintChar(char);
+int PrintString();
+int PrintInt10();
+int PrintInt16();
 
 #endif
 

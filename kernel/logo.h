@@ -3,14 +3,14 @@
 
 #include "kprint.h"
 
-void printLogo() 
+void PrintLogo() 
 {
-    printString("  _                        \n");
-	printString(" | |_ ___  _   _  ___  ___ \n");
-	printString(" | __/ _ \\| | | |/ _ \\/ __|\n");
-	printString(" | |_ (_) | |_| | (_) \\__ \\\n");
-	printString("  \\__\\___/ \\__, |\\___/|___/\n");
-	printString("           |___/                  by hszzz\n");
+    PrintString("  _                        \n");
+	PrintString(" | |_ ___  _   _  ___  ___ \n");
+	PrintString(" | __/ _ \\| | | |/ _ \\/ __|\n");
+	PrintString(" | |_ (_) | |_| | (_) \\__ \\\n");
+	PrintString("  \\__\\___/ \\__, |\\___/|___/\n");
+	PrintString("           |___/                  by hszzz\n");
 }
 
 #endif // LOG_H

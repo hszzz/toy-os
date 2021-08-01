@@ -1,10 +1,10 @@
 #include "kernel.h"
 
-gdtInfo gGdtInfo = {0};
+GdtInfo gGdtInfo = {0};
 IdtInfo gIdtInfo = {0};
-void (* const RunProcess)(Process* pt) = NULL;
+void (* const RunTask)(Task* t) = NULL;
 
-int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
+int SetDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
 {
 	int ret = 0;
 
@@ -21,7 +21,7 @@ int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
 	return ret;
 }
 
-int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr)
+int GetDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr)
 {
 	int ret = 0;
 

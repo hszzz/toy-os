@@ -2,12 +2,13 @@
 
 global _start
 
-extern KMain
 extern gGdtInfo
 extern gIdtInfo
-extern clearScreen
 
-extern RunProcess
+extern KMain
+extern ClearScreen
+
+extern RunTask
 extern InitInterrupt
 extern EnableTimer
 extern SendEOI
@@ -18,7 +19,7 @@ _start:
     mov ebp, 0 
 
     call InitGlobal
-    call clearScreen
+    call ClearScreen
     call KMain
     
     jmp $
@@ -39,8 +40,8 @@ InitGlobal:
     mov eax, dword [IdtSize]
     mov [gIdtInfo + 4], eax
 
-    mov eax, dword [RunProcessEntry]
-    mov dword [RunProcess], eax
+    mov eax, dword [RunTaskEntry]
+    mov dword [RunTask], eax
 
     mov eax, dword [InitInterruptEntry]
     mov [InitInterrupt], eax

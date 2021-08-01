@@ -4,7 +4,7 @@ static int printPosW = 0;
 static int printPosH = 0;
 static int printColor = PRINT_WHITE;
 
-int setPrintPosition(int w, int h)
+int SetPrintPosition(int w, int h)
 {
 	int ret = 0;
 
@@ -37,34 +37,34 @@ int setPrintPosition(int w, int h)
 	return ret;
 }
 
-void setPrintColor(PrintColor color) 
+void SetPrintColor(PrintColor color) 
 {
 	printColor = color;
 }
 
-void clearScreen()
+void ClearScreen()
 {
 	int w = 0;
 	int h = 0;
-	setPrintPosition(0, 0);
+	SetPrintPosition(0, 0);
 
 	for (w=0; w<SCREEN_WIDTH; w++)
 	{
 		for (h=0; h<SCREEN_HEIGHT; h++)
 		{
-			printChar(' ');
+			PrintChar(' ');
 		}
 	}
-	setPrintPosition(0, 0);
+	SetPrintPosition(0, 0);
 }
 
-int printChar(char c)
+int PrintChar(char c)
 {
 	int ret;
 
 	if ((c == '\n') || (c == '\r'))
 	{
-		ret = setPrintPosition(0, printPosH + 1);
+		ret = SetPrintPosition(0, printPosH + 1);
 	}
 	else
 	{
@@ -99,13 +99,13 @@ int printChar(char c)
 			ret = 1;
 		}
 
-		setPrintPosition(w, h);
+		SetPrintPosition(w, h);
 	}
 
 	return ret;
 }
 
-int printString(const char* s)
+int PrintString(const char* s)
 {
 	int ret = 0;
 
@@ -113,7 +113,7 @@ int printString(const char* s)
 	{
 		while (*s)
 		{
-			ret += printChar(*s++);
+			ret += PrintChar(*s++);
 		}
 	}
 	else
@@ -124,7 +124,7 @@ int printString(const char* s)
 	return ret;
 }
 
-int printInt16(int n)
+int PrintInt16(int n)
 {
 	int i = 0;
 	char hex[11] = {'0', 'x', 0};
@@ -144,29 +144,29 @@ int printInt16(int n)
 		n = n >> 4;
 	}
 
-	return printString(hex);
+	return PrintString(hex);
 }
 
-int printInt10(int n)
+int PrintInt10(int n)
 {
 	int ret = 0;
 
 	if (n < 0) 
 	{
-		printChar('-');
+		PrintChar('-');
 		n = -n;
-		ret += printInt10(n);
+		ret += PrintInt10(n);
 	}
 	else
 	{
 		if (n < 10)
 		{
-			ret += printChar('0' + n);
+			ret += PrintChar('0' + n);
 		}
 		else
 		{
-			printInt10(n / 10);
-			printInt10(n % 10);
+			PrintInt10(n / 10);
+			PrintInt10(n % 10);
 		}
 	}
 

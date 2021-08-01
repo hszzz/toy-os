@@ -18,7 +18,7 @@ typedef struct
 {
 	Descriptor* const entry;
 	const int         size;
-} gdtInfo;
+} GdtInfo;
 
 typedef struct
 {
@@ -55,7 +55,7 @@ typedef struct
 	uint eflags;
 	uint esp;
 	uint ss;
-} regValue;
+} RegValue;
 
 typedef struct 
 {
@@ -69,7 +69,7 @@ typedef struct
 
 typedef struct
 {
-	regValue   rv;
+	RegValue   rv;
 	Descriptor ldt[3];
 	TSS        tss;
 	ushort     ldtSelector;
@@ -77,14 +77,14 @@ typedef struct
 	uint       id;
 	char       name[8];
 	byte       stack[512];
-} Process;
+} Task;
 
-int setDescValue(Descriptor* desc, uint base, uint limit, ushort attr);
-int getDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
+int SetDescValue(Descriptor* desc, uint base, uint limit, ushort attr);
+int GetDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 
 
-extern gdtInfo gGdtInfo;
+extern GdtInfo gGdtInfo;
 extern IdtInfo gIdtInfo;
-extern void (* const RunProcess)(Process* pt);
+extern void (* const RunTask)(Task* t);
 #endif
 

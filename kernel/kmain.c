@@ -6,7 +6,7 @@
 #include "logo.h"
 
 
-Process p = {0};
+Task p = {0};
 
 void Delay(int n)
 {
@@ -31,14 +31,14 @@ void TaskA()
 {
     int i = 0;
     
-    setPrintPosition(0, 19);
+    SetPrintPosition(0, 19);
     
-    printString("Task A: ");
+    PrintString("Task A: ");
     
     while(1)
     {
-        setPrintPosition(8, 19);
-        printChar('A' + i);
+        SetPrintPosition(8, 19);
+        PrintChar('A' + i);
         i = (i + 1) % 26;
         Delay(1);
     }
@@ -50,17 +50,18 @@ void TimerHandler()
 
 	i = (i + 1) % 10;
 
-    setPrintPosition(0, 16);
-	printString("Task B: ");
+    SetPrintPosition(0, 16);
+	PrintString("Timer: ");
 
 	if (i == 0) 
 	{
 		static uint j = 0;
-		setPrintPosition(0, 16);
-		printString("Timer: ");
+		j %= 10;
+		SetPrintPosition(0, 16);
+		PrintString("Timer: ");
 
-		setPrintPosition(8, 16);
-		printInt10(j++);
+		SetPrintPosition(8, 16);
+		PrintInt10(j++);
 	}
 
 	SendEOI(MASTER_EOI_PORT);
@@ -69,39 +70,39 @@ void TimerHandler()
 
 void KMain()
 {
-    printLogo();
+    PrintLogo();
 
-    printString("GDT Entry: ");
-    printInt16((uint)gGdtInfo.entry);
-    printChar('\n');
+    PrintString("GDT Entry: ");
+    PrintInt16((uint)gGdtInfo.entry);
+    PrintChar('\n');
     
-    printString("GDT Size: ");
-    printInt10((uint)gGdtInfo.size);
-    printChar('\n');
+    PrintString("GDT Size: ");
+    PrintInt10((uint)gGdtInfo.size);
+    PrintChar('\n');
 
-    printString("IDT Entry: ");
-    printInt16((uint)gIdtInfo.entry);
-    printChar('\n');
+    PrintString("IDT Entry: ");
+    PrintInt16((uint)gIdtInfo.entry);
+    PrintChar('\n');
     
-    printString("GDT Size: ");
-    printInt10((uint)gIdtInfo.size);
-    printChar('\n');
+    PrintString("IDT Size: ");
+    PrintInt10((uint)gIdtInfo.size);
+    PrintChar('\n');
 
-    printString("runProcess: ");
-    printInt16((uint)RunProcess);
-    printChar('\n');
+    PrintString("RunTask: ");
+    PrintInt16((uint)RunTask);
+    PrintChar('\n');
 
-    printString("InitInterrupt: ");
-    printInt16((uint)InitInterrupt);
-    printChar('\n');
+    PrintString("InitInterrupt: ");
+    PrintInt16((uint)InitInterrupt);
+    PrintChar('\n');
     
-    printString("EnableTimer: ");
-    printInt16((uint)EnableTimer);
-    printChar('\n');
+    PrintString("EnableTimer: ");
+    PrintInt16((uint)EnableTimer);
+    PrintChar('\n');
 
-    printString("SendEOI: ");
-    printInt16((uint)SendEOI);
-    printChar('\n');
+    PrintString("SendEOI: ");
+    PrintInt16((uint)SendEOI);
+    PrintChar('\n');
 
     p.rv.cs = LDT_CODE32_SELECTOR;
     p.rv.gs = LDT_GRAPHICS_SELECTOR;
@@ -118,21 +119,21 @@ void KMain()
     p.tss.esp0 = 0x9000;
     p.tss.iomb = sizeof(p.tss);
     
-    setDescValue(p.ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
-    setDescValue(p.ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
-    setDescValue(p.ldt + LDT_DATA32_INDEX,   0x00,    0xFFFFF, DA_DRW  + DA_32 + DA_DPL3);
+    SetDescValue(p.ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
+    SetDescValue(p.ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
+    SetDescValue(p.ldt + LDT_DATA32_INDEX,   0x00,    0xFFFFF, DA_DRW  + DA_32 + DA_DPL3);
     
     p.ldtSelector = GDT_TASK_LDT_SELECTOR;
     p.tssSelector = GDT_TASK_TSS_SELECTOR;
     
-    setDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT    + DA_DPL0);
-    setDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&p.tss, sizeof(p.tss)-1, DA_386TSS + DA_DPL0);
+    SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT    + DA_DPL0);
+    SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&p.tss, sizeof(p.tss)-1, DA_386TSS + DA_DPL0);
 
 	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandler);
 
     InitInterrupt();
     EnableTimer();
 
-    printChar('\n');
-    RunProcess(&p);
+    PrintChar('\n');
+    RunTask(&p);
 }

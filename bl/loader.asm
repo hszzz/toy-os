@@ -146,7 +146,7 @@ InitDescItem:
 StoreGlobalFunc:
     ; store RunProcess to shared memory
 	; due to kernel wants to switch process
-    mov dword [RunProcessEntry], RunProcess
+    mov dword [RunTaskEntry], RunTask
 
     mov dword [InitInterruptEntry], InitInterrupt
     mov dword [EnableTimerEntry], EnableTimer
@@ -240,8 +240,8 @@ WriteEOI:
 ; will be called by kernel
 [section .kfunc]
 [bits 32]
-; RunProcess(Process* p)
-RunProcess:
+; RunTask(Task* p)
+RunTask:
     push ebp
     mov  ebp, esp
 
