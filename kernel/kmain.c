@@ -31,7 +31,7 @@ void Delay(int n)
 
 void TaskA()
 {
-    int i = 0;
+    static int i = 0;
     
     SetPrintPosition(0, 19);
     
