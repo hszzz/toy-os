@@ -265,7 +265,7 @@ RunTask:
 ; void LOadTask(Task*);
 LoadTask:
     push ebp
-    push ebp, esp
+    mov  ebp, esp
 
     mov eax, [ebp + 8]
     lldt word [eax + 200]

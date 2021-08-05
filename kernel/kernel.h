@@ -85,8 +85,8 @@ int GetDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 extern GdtInfo gGdtInfo;
 extern IdtInfo gIdtInfo;
 
-extern void (* const RunTask)(Task* t);
-extern void (* const LoadTask)(Task* t);
+extern void (* const RunTask)(volatile Task* t);
+extern void (* const LoadTask)(volatile Task* t);
 
 #endif
 
