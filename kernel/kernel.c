@@ -3,6 +3,7 @@
 GdtInfo gGdtInfo = {0};
 IdtInfo gIdtInfo = {0};
 void (* const RunTask)(Task* t) = NULL;
+void (* const LoadTask)(Task* t) = NULL;
 
 int SetDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
 {
