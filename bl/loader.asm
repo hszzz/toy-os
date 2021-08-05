@@ -145,12 +145,13 @@ InitDescItem:
 ; store GDT to shared memory
 StoreGlobalFunc:
     ; store RunProcess to shared memory
-	; due to kernel wants to switch process
+    ; due to kernel wants to switch process
     mov dword [RunTaskEntry], RunTask
 
     mov dword [InitInterruptEntry], InitInterrupt
     mov dword [EnableTimerEntry], EnableTimer
     mov dword [SendEOIEntry], SendEOI
+    mov dword [LoadTaskEntry], LoadTask
 
     ; store gdt to sharedmemory
     mov eax, dword [GDT_PTR + 2]
@@ -260,6 +261,17 @@ RunTask:
 
     add esp, 4
     iret
+
+; void LOadTask(Task*);
+LoadTask:
+    push ebp
+    mov  ebp, esp
+
+    mov eax, [ebp + 8]
+    lldt word [eax + 200]
+
+    leave
+    ret
 
 ; init 8259a interrupt in kernel
 InitInterrupt:

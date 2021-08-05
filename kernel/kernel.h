@@ -24,8 +24,8 @@ typedef struct
 {
     ushort offset1;
     ushort selector;
-    byte dcount;
-    byte attr;
+    byte   dcount;
+    byte   attr;
     ushort offset2;
 } Gate;
 
@@ -82,9 +82,11 @@ typedef struct
 int SetDescValue(Descriptor* desc, uint base, uint limit, ushort attr);
 int GetDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 
-
 extern GdtInfo gGdtInfo;
 extern IdtInfo gIdtInfo;
-extern void (* const RunTask)(Task* t);
+
+extern void (* const RunTask)(volatile Task* t);
+extern void (* const LoadTask)(volatile Task* t);
+
 #endif
 
