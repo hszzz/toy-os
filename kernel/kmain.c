@@ -37,7 +37,7 @@ void TaskA()
     
     PrintString("Task A: ");
     
-    while(1)
+    while (1)
     {
         SetPrintPosition(8, 19);
         PrintChar('A' + i);
