@@ -5,10 +5,41 @@
 
 #include "logo.h"
 
-Task* gTaskAddr = NULL;
+volatile Task* gTaskAddr = NULL;
 Task p = {0};
+Task p1 = {0};
+
+TSS gTSS = {0};
 
 extern void TimerHandlerEntry();
+
+void InitTask(Task* t, void(*entry)())
+{   
+   	t->rv.cs = LDT_CODE32_SELECTOR;
+    t->rv.gs = LDT_GRAPHICS_SELECTOR;
+    t->rv.ds = LDT_DATA32_SELECTOR;
+    t->rv.es = LDT_DATA32_SELECTOR;
+    t->rv.fs = LDT_DATA32_SELECTOR;
+    t->rv.ss = LDT_DATA32_SELECTOR;
+    
+    t->rv.esp = (uint)t->stack + sizeof(t->stack);
+    t->rv.eip = (uint)entry;
+    t->rv.eflags = 0x3202;
+    
+    t->tss.ss0 = GDT_DATA32_FLAT_SELECTOR;
+    t->tss.esp0 = (uint)&t->rv + sizeof(t->rv);
+    t->tss.iomb = sizeof(TSS);
+    
+    SetDescValue(t->ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
+    SetDescValue(t->ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
+    SetDescValue(t->ldt + LDT_DATA32_INDEX,   0x00,    0xFFFFF, DA_DRW  + DA_32 + DA_DPL3);
+    
+    t->ldtSelector = GDT_TASK_LDT_SELECTOR;
+    t->tssSelector = GDT_TASK_TSS_SELECTOR;
+    
+    SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&t->ldt, sizeof(t->ldt) - 1, DA_LDT    + DA_DPL0);
+    SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&gTSS,   sizeof(gTSS) - 1,   DA_386TSS + DA_DPL0);
+}
 
 void Delay(int n)
 {
@@ -46,6 +77,35 @@ void TaskA()
     }
 }
 
+void TaskB()
+{
+    static int i = 0;
+    
+    SetPrintPosition(0, 17);
+    
+    PrintString("Task B: ");
+    
+    while(1)
+    {
+        SetPrintPosition(8, 17);
+        PrintChar('0' + i);
+        i = (i + 1) % 10;
+        Delay(1);
+    }
+}
+
+void ChangeTask()
+{
+	gTaskAddr = (gTaskAddr == &p) ? &p : &p1;
+
+	gTSS.ss0 = GDT_DATA32_FLAT_SELECTOR;
+	gTSS.esp0 = (uint)&gTaskAddr->rv.gs + sizeof(RegValue);
+
+    SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&gTaskAddr->ldt, sizeof(gTaskAddr->ldt) - 1, DA_LDT    + DA_DPL0);
+
+	LoadTask(gTaskAddr);
+}
+
 void TimerHandler()
 {
     static uint i = 0;
@@ -57,6 +117,7 @@ void TimerHandler()
 
 	if (i == 0) 
 	{
+		/*
 		static uint j = 0;
 		j %= 10;
 		SetPrintPosition(0, 16);
@@ -64,6 +125,8 @@ void TimerHandler()
 
 		SetPrintPosition(8, 16);
 		PrintInt10(j++);
+		*/
+		ChangeTask();
 	}
 
 	SendEOI(MASTER_EOI_PORT);
@@ -105,30 +168,8 @@ void KMain()
     PrintInt16((uint)SendEOI);
     PrintChar('\n');
 
-    p.rv.cs = LDT_CODE32_SELECTOR;
-    p.rv.gs = LDT_GRAPHICS_SELECTOR;
-    p.rv.ds = LDT_DATA32_SELECTOR;
-    p.rv.es = LDT_DATA32_SELECTOR;
-    p.rv.fs = LDT_DATA32_SELECTOR;
-    p.rv.ss = LDT_DATA32_SELECTOR;
-    
-    p.rv.esp = (uint)p.stack + sizeof(p.stack);
-    p.rv.eip = (uint)TaskA;
-    p.rv.eflags = 0x3202;
-    
-    p.tss.ss0 = GDT_DATA32_FLAT_SELECTOR;
-    p.tss.esp0 = 0x9000;
-    p.tss.iomb = sizeof(p.tss);
-    
-    SetDescValue(p.ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
-    SetDescValue(p.ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
-    SetDescValue(p.ldt + LDT_DATA32_INDEX,   0x00,    0xFFFFF, DA_DRW  + DA_32 + DA_DPL3);
-    
-    p.ldtSelector = GDT_TASK_LDT_SELECTOR;
-    p.tssSelector = GDT_TASK_TSS_SELECTOR;
-    
-    SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&p.ldt, sizeof(p.ldt)-1, DA_LDT    + DA_DPL0);
-    SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&p.tss, sizeof(p.tss)-1, DA_386TSS + DA_DPL0);
+	InitTask(&p, TaskA);
+	InitTask(&p1, TaskB);
 
 	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandlerEntry);
 
