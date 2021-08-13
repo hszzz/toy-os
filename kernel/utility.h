@@ -1,7 +1,7 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
-void delay(int n);
+void Delay(int n);
 
 #endif // UTILITY_H
 

@@ -1,18 +1,20 @@
 #include "utility.h"
 
-void delay(int n)
+void Delay(int n)
 {
 	while (n > 0)
 	{
 		int i = 0;
 		int j = 0;
 
-		for (i; i<1000; i++)
+		for (i=0; i<1000; i++)
 		{
-			for (j; j<1000; j++)
+			for (j=0; j<1000; j++)
 			{
-				asm volatile("nop\n");
+                asm volatile ("nop\n");
 			}
 		}
+		
+		n--;
 	}
 }
