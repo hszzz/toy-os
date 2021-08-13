@@ -35,7 +35,9 @@ KENTRY_OUT := $(BUILD_DIR)/kentry.o
 OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/kprint.o \
 	$(BUILD_DIR)/kernel.o \
-	$(BUILD_DIR)/interrupt.o
+	$(BUILD_DIR)/interrupt.o \
+	$(BUILD_DIR)/task.o \
+	$(BUILD_DIR)/utility.o 
 
 all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
 	
@@ -75,6 +77,6 @@ rebuild :
 	$(MAKE) all
 
 clean :
-	@$(RM) $(BUILD_DIR)
-	@$(RM) $(IMAGE)
+	$(RM) $(BUILD_DIR)
+	$(RM) $(IMAGE)
 
