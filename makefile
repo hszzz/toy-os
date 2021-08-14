@@ -37,7 +37,8 @@ OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/kernel.o \
 	$(BUILD_DIR)/interrupt.o \
 	$(BUILD_DIR)/task.o \
-	$(BUILD_DIR)/utility.o 
+	$(BUILD_DIR)/utility.o \
+	$(BUILD_DIR)/ihandler.o 
 
 all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
 	

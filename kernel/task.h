@@ -46,8 +46,10 @@ typedef struct
 	byte       stack[512];
 } Task;
 
+/*
 extern void (* const RunTask)(volatile Task* t);
 extern void (* const LoadTask)(volatile Task* t); 
+*/
 
 void InitTasks();
 void LaunchTask();

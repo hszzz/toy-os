@@ -1,8 +1,9 @@
 #include "interrupt.h"
+#include "ihandler.h"
 
-void (* const InitInterrupt)() = NULL;
-void (* const EnableTimer)() = NULL;
-void (* const SendEOI)(uint port) = NULL;
+void (* const InitInterrupt)();
+void (* const EnableTimer)();
+void (* const SendEOI)(uint port);
 
 int SetInterruptHandler(Gate* gate, uint func)
 {
@@ -30,5 +31,14 @@ int GetInterruptHandler(Gate* gate, uint* func)
 	}
 
 	return ret;
+}
+
+void InitInterrupts()
+{
+	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandlerEntry);
+
+    InitInterrupt();
+    EnableTimer();
+
 }
 

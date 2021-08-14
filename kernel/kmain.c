@@ -6,20 +6,6 @@
 #include "utility.h"
 #include "logo.h"
 
-extern void TimerHandlerEntry();
-
-void TimerHandler()
-{
-    static uint i = 0;
-
-	if (i == 0) 
-	{
-		Schedule();
-	}
-
-	SendEOI(MASTER_EOI_PORT);
-}
-
 void KMain()
 {
     PrintLogo();
@@ -40,11 +26,7 @@ void KMain()
     PrintInt10((uint)gIdtInfo.size);
     PrintChar('\n');
     
-	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandlerEntry);
-
-    InitInterrupt();
-    EnableTimer();
-
+    InitInterrupts();
     InitTasks();
     LaunchTask();
 }
