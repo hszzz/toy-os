@@ -78,6 +78,5 @@ rebuild :
 	$(MAKE) all
 
 clean :
-	$(RM) $(BUILD_DIR)
-	$(RM) $(IMAGE)
+	$(RM) $(BUILD_DIR) $(IMAGE)
 

@@ -17,6 +17,9 @@ volatile Task* gTaskAddr = NULL;
 Task p  = {0};
 Task p1 = {0};
 
+int index = 0;
+Task task[3] = { 0 };
+
 TSS gTSS = {0};
 
 void TaskA()
@@ -55,6 +58,24 @@ void TaskB()
     }
 }
 
+void TaskC()
+{
+    int i = 0;
+    
+    SetPrintPosition(0, 21);
+    
+    PrintString("Task C: ");
+    
+    while (1)
+    {
+        SetPrintPosition(8, 21);
+        PrintChar('a' + i);
+        PrintChar(' ');
+        i = (i + 1) % 26;
+        Delay(1);
+    }
+}
+
 static void InitTask(Task* t, void(*entry)())
 {
     t->rv.cs = LDT_CODE32_SELECTOR;
@@ -85,19 +106,27 @@ static void InitTask(Task* t, void(*entry)())
 
 void InitTasks()
 {
+	/*
     InitTask(&p1, TaskB);
     InitTask(&p,  TaskA);
+	*/
+	InitTask(&task[1], TaskB);
+	InitTask(&task[2], TaskC);
+	InitTask(&task[0], TaskA);
 }
 
 void LaunchTask()
 {
-    gTaskAddr = &p;
+    gTaskAddr = &task[0];
     RunTask(gTaskAddr);
 }
 
 void Schedule()
 {
-    gTaskAddr = (gTaskAddr == &p) ? &p1 : &p;
+    // gTaskAddr = (gTaskAddr == &p) ? &p1 : &p;
+    gTaskAddr = &task[index++];
+
+	index %= 3;
 
     gTSS.ss0 = GDT_DATA32_FLAT_SELECTOR;
     gTSS.esp0 = (uint)&gTaskAddr->rv.gs + sizeof(RegValue);
