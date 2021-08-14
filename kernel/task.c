@@ -2,8 +2,16 @@
 #include "utility.h"
 #include "kprint.h"
 
+/*
 void (* const RunTask)(volatile Task* t);// = NULL;
 void (* const LoadTask)(volatile Task* t);// = NULL;
+*/
+
+extern void (* const RunTask)(volatile Task* t);
+extern void (* const LoadTask)(volatile Task* t);
+
+void (* const RunTask)(volatile Task* t);
+void (* const LoadTask)(volatile Task* t);
 
 volatile Task* gTaskAddr = NULL;
 Task p  = {0};
@@ -23,6 +31,7 @@ void TaskA()
     {
         SetPrintPosition(8, 19);
         PrintChar('A' + i);
+        PrintChar(' ');
         i = (i + 1) % 26;
         Delay(1);
     }
@@ -40,6 +49,7 @@ void TaskB()
     {
         SetPrintPosition(8, 20);
         PrintChar('0' + i);
+        PrintChar(' ');
         i = (i + 1) % 10;
         Delay(1);
     }
@@ -75,7 +85,6 @@ static void InitTask(Task* t, void(*entry)())
 
 void InitTasks()
 {
-	PrintInt16((uint)RunTask);
     InitTask(&p1, TaskB);
     InitTask(&p,  TaskA);
 }
