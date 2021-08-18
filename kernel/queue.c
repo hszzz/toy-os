@@ -4,8 +4,7 @@
 void QueueInit(struct QueueHead* queue)
 {
     queue->len = 0;
-    queue->head.prev = NULL;
-    queue->head.next = NULL;
+    ListInit(&queue->head);
 }
 
 void QueuePush(struct QueueHead* queue, struct ListHead* node)
@@ -22,7 +21,7 @@ void QueuePop(struct QueueHead* queue)
 
 struct ListHead* QueueFront(struct QueueHead* queue)
 {
-    return queue->head.next != &queue->head ? queue->head.next : NULL;
+    return queue->head.next;
 }
 
 int QueueIsEmpty(struct QueueHead* queue)
@@ -54,6 +53,7 @@ int QueueLength(struct QueueHead* queue)
 
 void QueueRotate(struct QueueHead* queue)
 {
-    QueuePush(queue, QueueFront(queue));
-    QueuePop(queue);
+    struct ListHead* node = queue->head.next;
+    ListDel(queue->head.next);
+    ListAddTail(&queue->head, node);
 }
