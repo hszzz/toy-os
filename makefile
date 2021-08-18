@@ -11,10 +11,10 @@ MKDIR := mkdir
 CP    := cp
 RM    := rm -rf
 
-CFLAGS := -I./include -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
-		-funsigned-char  -finline-functions -finline-small-functions \
+CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
+		-funsigned-char -finline-functions -finline-small-functions \
 		-findirect-inlining -finline-functions-called-once \
-		-ggdb -gstabs+ -fdump-rtl-expand -I./kernel
+		-ggdb -gstabs+ -fdump-rtl-expand -I./kernel -I./include
 
 LD_SCRIPT  := -T./scripts/link.lds
 
@@ -38,7 +38,9 @@ OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/interrupt.o \
 	$(BUILD_DIR)/task.o \
 	$(BUILD_DIR)/utility.o \
-	$(BUILD_DIR)/ihandler.o 
+	$(BUILD_DIR)/ihandler.o \
+	$(BUILD_DIR)/list.o \
+	$(BUILD_DIR)/queue.o 
 
 all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
 	
@@ -71,7 +73,7 @@ $(BUILD_DIR)/%.o : */%.c
 	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
 
 $(KERNEL_ELF) : $(KENTRY_OUT) $(OBJS)
-	$(LD) $(LD_SCRIPT) -m elf_i386 -s  $^ -o $@
+	$(LD) $(LD_SCRIPT) -m elf_i386 -s $^ -o $@
 	
 rebuild :
 	$(MAKE) clean
