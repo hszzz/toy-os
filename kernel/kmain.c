@@ -7,6 +7,7 @@
 #include "logo.h"
 
 #include "list.h"
+#include "queue.h"
 
 typedef struct
 {
@@ -109,6 +110,70 @@ void TestKernelList()
     }
 }
 
+void TestKernelQueue()
+{
+    TestNode node[3];
+    for (int i=0; i<3; ++i)
+    {
+        node[i].x = i;
+        node[i].y = i;
+
+        node[i].head.prev = NULL;
+        node[i].head.next = NULL;
+    }
+
+    struct QueueHead queue;
+    QueueInit(&queue);
+    PrintString("test queue is empty: ");
+    PrintInt10(QueueIsEmpty(&queue));
+    PrintChar('\n');
+
+    for (int i=0; i<3; ++i)
+    {
+        QueuePush(&queue, &node[i].head);
+        PrintString("test queue length: ");
+        PrintInt10(QueueLength(&queue));
+        PrintChar('\n');
+    }
+
+    PrintString("test queue is empty: ");
+    PrintInt10(QueueIsEmpty(&queue));
+    PrintChar('\n');
+
+    /*
+    struct ListHead* pos;
+    ListForEach(pos, &queue.head)
+    {
+        TestNode* node = ListEntry(pos, TestNode, head);
+        PrintString("node ");
+        PrintString(" x = ");
+        PrintInt10(node->x);
+        PrintString(" y = ");
+        PrintInt10(node->y);
+        PrintChar('\n');
+    }
+    */
+
+    QueueRotate(&queue);
+
+    for (int i=0; i<3; ++i)
+    {
+        struct ListHead* head = QueueFront(&queue);
+        TestNode* temp = ListEntry(head, TestNode, head);
+
+        PrintString("node ");
+        PrintInt10(i);
+        PrintString(" x = ");
+        PrintInt10(temp->x);
+        PrintString(" y = ");
+        PrintInt10(temp->y);
+        PrintChar('\n');
+
+        QueuePop(&queue);
+    }
+    PrintInt10(QueueLength(&queue));
+}
+
 void KMain()
 {
     PrintLogo();
@@ -129,7 +194,9 @@ void KMain()
     PrintInt10((uint)gIdtInfo.size);
     PrintChar('\n');
 
-    TestKernelList();
+    // TestKernelList();
+
+    TestKernelQueue();
 
     // InitInterrupts();
     // InitTasks();
