@@ -2,6 +2,8 @@
 #define TASK_H
 
 #include "kernel.h"
+#include "queue.h"
+#include "list.h"
 
 typedef struct
 {
@@ -46,10 +48,11 @@ typedef struct
 	byte       stack[512];
 } Task;
 
-/*
-extern void (* const RunTask)(volatile Task* t);
-extern void (* const LoadTask)(volatile Task* t); 
-*/
+struct TaskNode
+{
+    Task task;
+    struct ListHead head;
+};
 
 void InitTasks();
 void LaunchTask();
