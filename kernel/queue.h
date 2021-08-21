@@ -3,6 +3,8 @@
 
 #include "list.h"
 
+#define QueueEntry(ptr, type, member) ContainerOf(ptr, type, member)
+
 struct QueueHead
 {
     int len;
