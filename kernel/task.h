@@ -43,6 +43,7 @@ typedef struct
 	Descriptor ldt[3];
 	ushort     ldtSelector;
 	ushort     tssSelector;
+	void (*tentry)();
 	uint       id;
 	char       name[8];
 	byte       stack[512];

@@ -3,7 +3,6 @@
 GdtInfo gGdtInfo = {0};
 IdtInfo gIdtInfo = {0};
 
-
 int SetDescValue(Descriptor* desc, uint base, uint limit, ushort attr)
 {
 	int ret = 0;
