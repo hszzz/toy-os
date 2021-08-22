@@ -9,16 +9,20 @@ void (* const RunTask)(volatile Task* t);
 void (* const LoadTask)(volatile Task* t);
 
 volatile Task* gTaskAddr = NULL;
-Task p  = {0};
-Task p1 = {0};
-
-int index = 0;
-Task task[3] = { 0 };
-
 static struct QueueHead TaskQueue;
 static  struct TaskNode TaskQueueBuffer[16];
-
 TSS gTSS = {0};
+
+static void TaskEntry()
+{
+    if (gTaskAddr)
+    {
+        gTaskAddr->tentry();
+    }
+
+    PrintString("A task exit ...");
+    while (1);
+}
 
 void TaskA()
 {
@@ -28,7 +32,7 @@ void TaskA()
     
     PrintString("Task A: ");
     
-    while (1)
+    while (i<10)
     {
         SetPrintPosition(8, 19);
         PrintChar('A' + i);
@@ -36,6 +40,8 @@ void TaskA()
         i = (i + 1) % 26;
         Delay(1);
     }
+
+    PrintString("Task A exited ...");
 }
 
 void TaskB()
@@ -136,8 +142,10 @@ static void InitTask(Task* t, void(*entry)())
     t->rv.ss = LDT_DATA32_SELECTOR;
     
     t->rv.esp = (uint)t->stack + sizeof(t->stack);
-    t->rv.eip = (uint)entry;
+    t->rv.eip = (uint)TaskEntry;
     t->rv.eflags = 0x3202;
+
+    t->tentry = entry;
 
     SetDescValue(t->ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
     SetDescValue(t->ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
@@ -188,4 +196,3 @@ void Schedule()
     InitTaskTss(gTaskAddr);
     LoadTask(gTaskAddr);
 }
-
