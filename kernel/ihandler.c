@@ -14,3 +14,7 @@ void TimerHandler()
 	SendEOI(MASTER_EOI_PORT);
 }
 
+void SystemCallHandler()
+{
+
+}
