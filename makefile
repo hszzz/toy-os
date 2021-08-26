@@ -40,7 +40,8 @@ OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/utility.o \
 	$(BUILD_DIR)/ihandler.o \
 	$(BUILD_DIR)/list.o \
-	$(BUILD_DIR)/queue.o 
+	$(BUILD_DIR)/queue.o \
+	$(BUILD_DIR)/syscall.o 
 
 all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
 	
