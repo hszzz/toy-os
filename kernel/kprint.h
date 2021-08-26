@@ -22,9 +22,9 @@ void SetPrintColor(PrintColor);
 void ClearScreen();
 
 int PrintChar(char);
-int PrintString();
-int PrintInt10();
-int PrintInt16();
+int PrintString(const char*);
+int PrintInt10(int n);
+int PrintInt16(int n);
 
 #endif
 

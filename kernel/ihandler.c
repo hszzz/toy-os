@@ -2,19 +2,20 @@
 #include "task.h"
 #include "interrupt.h"
 
+#include "syscall.h"
+
 void TimerHandler()
 {
-    static uint i = 0;
-
-	if (i == 0) 
-	{
-		Schedule();
-	}
-
+	Schedule();
 	SendEOI(MASTER_EOI_PORT);
 }
 
-void SystemCallHandler()
+void SystemCallHandler(ushort ax) // __cdecl__
 {
-
+    SetPrintPosition(0, 16);
+    PrintString("enter soft interrupt.");
+    if (ax == 1)
+    {
+        _exit();
+    }
 }

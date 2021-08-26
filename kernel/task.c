@@ -13,6 +13,14 @@ static struct QueueHead TaskQueue;
 static  struct TaskNode TaskQueueBuffer[16];
 TSS gTSS = {0};
 
+static void TaskExit()
+{
+   asm volatile(
+        "movw  $1, %ax \n"
+        "int   $0x80   \n"
+   );
+}
+
 static void TaskEntry()
 {
     if (gTaskAddr)
@@ -20,7 +28,7 @@ static void TaskEntry()
         gTaskAddr->tentry();
     }
 
-    PrintString("A task exit ...");
+    TaskExit();
     while (1);
 }
 
@@ -40,8 +48,6 @@ void TaskA()
         i = (i + 1) % 26;
         Delay(1);
     }
-
-    PrintString("Task A exited ...");
 }
 
 void TaskB()
@@ -96,7 +102,7 @@ void TaskD()
             SetPrintPosition(8, 22);
             for (int j=0; j<sizeof buf; ++j)
             {
-                PrintChar('-');
+                PrintChar(' ');
             }
         }
 

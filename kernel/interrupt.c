@@ -14,7 +14,7 @@ int SetInterruptHandler(Gate* gate, uint func)
 		gate->offset1 = func & 0xFFFF;
 		gate->selector = GDT_CODE32_FLAT_SELECTOR;
 		gate->dcount = 0;
-		gate->attr = DA_386IGate + DA_DPL0;
+		gate->attr = DA_386IGate + DA_DPL3; //!!! DA_DPL0 -> DA_DPL3, soft interrupt is running in DPL3
 		gate->offset2 = (func >> 16) & 0xFFFF;
 	}
 
@@ -35,10 +35,12 @@ int GetInterruptHandler(Gate* gate, uint* func)
 
 void InitInterrupts()
 {
+    // timer
 	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandlerEntry);
+	// system call
+    SetInterruptHandler(gIdtInfo.entry + 0x80, (uint)SystemCallHandlerEntry);
 
     InitInterrupt();
     EnableTimer();
-
 }
 
