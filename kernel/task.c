@@ -13,6 +13,14 @@ static struct QueueHead TaskQueue;
 static  struct TaskNode TaskQueueBuffer[16];
 TSS gTSS = {0};
 
+static void TaskExit()
+{
+   asm volatile(
+        "movw  $1, %ax \n"
+        "int   $0x80   \n"
+   );
+}
+
 static void TaskEntry()
 {
     if (gTaskAddr)
@@ -20,6 +28,7 @@ static void TaskEntry()
         gTaskAddr->tentry();
     }
 
+    TaskExit();
     while (1);
 }
 
