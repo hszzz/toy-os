@@ -3,6 +3,7 @@
 ; export function in this file
 global _start
 global TimerHandlerEntry
+global SystemCallHandlerEntry
 
 ; from kernel c file
 extern gTaskAddr
@@ -12,6 +13,7 @@ extern gIdtInfo
 ; from kernel c file
 extern KMain
 extern ClearScreen
+extern SystemCallHandler
 
 ; from load.asm(shared memory)
 extern InitInterrupt
@@ -107,3 +109,10 @@ ContextSave
     call TimerHandler
 ContextRestore
 
+; system call handler
+SystemCallHandlerEntry;
+ContextSave
+    push ax
+    call SystemCallHandler
+    pop ax
+ContextRestore
