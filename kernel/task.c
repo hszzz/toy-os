@@ -20,7 +20,6 @@ static void TaskEntry()
         gTaskAddr->tentry();
     }
 
-    PrintString("A task exit ...");
     while (1);
 }
 
@@ -40,8 +39,6 @@ void TaskA()
         i = (i + 1) % 26;
         Delay(1);
     }
-
-    PrintString("Task A exited ...");
 }
 
 void TaskB()
@@ -96,7 +93,7 @@ void TaskD()
             SetPrintPosition(8, 22);
             for (int j=0; j<sizeof buf; ++j)
             {
-                PrintChar('-');
+                PrintChar(' ');
             }
         }
 

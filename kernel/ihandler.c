@@ -4,12 +4,7 @@
 
 void TimerHandler()
 {
-    static uint i = 0;
-
-	if (i == 0) 
-	{
-		Schedule();
-	}
+	Schedule();
 
 	SendEOI(MASTER_EOI_PORT);
 }
