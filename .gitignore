@@ -35,3 +35,5 @@ build/
 *.img
 
 .idea
+
+toy-os
