@@ -13,7 +13,12 @@ void TimerHandler()
 void SystemCallHandler(ushort ax) // __cdecl__
 {
     SetPrintPosition(0, 16);
-    PrintString("enter soft interrupt.");
+    PrintString("enter soft interrupt. \n");
+
+    PrintString("ax=");
+    PrintInt10(ax);
+    PrintChar('\n');
+
     if (ax == 1)
     {
         _exit();

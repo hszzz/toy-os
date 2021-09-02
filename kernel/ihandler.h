@@ -10,4 +10,3 @@ extern void SystemCallHandlerEntry();
 void SystemCallHandler(ushort ax);
 
 #endif // IHANDLER_H
-

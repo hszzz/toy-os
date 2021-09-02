@@ -167,7 +167,7 @@ static void InitTaskTss(volatile Task* t)
     gTSS.esp0 = (uint)&t->rv + sizeof(t->rv);
     gTSS.iomb = sizeof(TSS);
 
-    SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&t->ldt, sizeof(t->ldt) - 1, DA_LDT    + DA_DPL0);
+    SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&t->ldt, sizeof(t->ldt) - 1, DA_LDT + DA_DPL0);
 }
 
 void InitTasks()
