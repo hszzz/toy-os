@@ -10,7 +10,7 @@ void (* const LoadTask)(volatile Task* t);
 
 volatile Task* gTaskAddr = NULL;
 static struct QueueHead TaskQueue;
-static  struct TaskNode TaskQueueBuffer[16];
+static struct TaskNode TaskQueueBuffer[16];
 TSS gTSS = {0};
 
 static void TaskExit()
