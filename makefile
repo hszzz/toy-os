@@ -11,6 +11,10 @@ MKDIR := mkdir
 CP    := cp
 RM    := rm -rf
 
+BOCHS    := bochs
+BOCHSRC  := .bochsrc
+BOCHSLOG := bochs.log
+
 CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 		-funsigned-char -finline-functions -finline-small-functions \
 		-findirect-inlining -finline-functions-called-once \
@@ -81,5 +85,7 @@ rebuild :
 	$(MAKE) all
 
 clean :
-	$(RM) $(BUILD_DIR) $(IMAGE)
+	$(RM) $(BUILD_DIR) $(IMAGE) $(BOCHSLOG)
 
+bochs : all
+	$(BOCHS) -q -f $(BOCHSRC) -log $(BOCHSLOG)
