@@ -17,7 +17,6 @@ static void TaskExit()
 {
    asm volatile(
         "movl  $1, %eax \n"
-        "movl  $2, %ebx \n"
         "int   $0x80   \n"
    );
 }

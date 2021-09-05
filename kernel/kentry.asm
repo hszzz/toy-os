@@ -112,9 +112,7 @@ ContextRestore
 ; system call handler
 SystemCallHandlerEntry:
 ContextSave
-    push ebx
     push eax
     call SystemCallHandler
     pop eax
-    pop ebx
 ContextRestore
