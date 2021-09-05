@@ -6,17 +6,6 @@
 #include "utility.h"
 #include "logo.h"
 
-#include "list.h"
-#include "queue.h"
-
-typedef struct
-{
-    int x;
-    int y;
-
-    struct ListHead head;
-} TestNode;
-
 void KMain()
 {
     PrintLogo();
@@ -40,7 +29,6 @@ void KMain()
     InitInterrupts();
     InitTasks();
     LaunchTask();
-
     while (1);
 }
 

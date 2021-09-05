@@ -7,7 +7,6 @@ extern void TimerHandlerEntry();
 void TimerHandler();
 
 extern void SystemCallHandlerEntry();
-void SystemCallHandler(ushort ax);
+void SystemCallHandler(uint ax);
 
 #endif // IHANDLER_H
-

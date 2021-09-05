@@ -110,9 +110,9 @@ ContextSave
 ContextRestore
 
 ; system call handler
-SystemCallHandlerEntry;
+SystemCallHandlerEntry:
 ContextSave
-    push ax
+    push eax
     call SystemCallHandler
-    pop ax
+    pop eax
 ContextRestore
