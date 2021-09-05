@@ -10,8 +10,15 @@ void TimerHandler()
 	SendEOI(MASTER_EOI_PORT);
 }
 
-void SystemCallHandler(ushort ax) // __cdecl__
+void SystemCallHandler(ushort ax, ushort bx) // __cdecl__
 {
+    SetPrintPosition(0, 11);
+    PrintString("ax = ");
+    PrintInt10(ax);
+    PrintString(" bx = ");
+    PrintInt10(bx);
+    PrintChar('\n');
+
     SetPrintPosition(0, 16);
     PrintString("enter soft interrupt. \n");
 

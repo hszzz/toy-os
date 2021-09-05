@@ -16,7 +16,8 @@ TSS gTSS = {0};
 static void TaskExit()
 {
    asm volatile(
-        "movw  $1, %ax \n"
+        "movl  $1, %eax \n"
+        "movl  $2, %ebx \n"
         "int   $0x80   \n"
    );
 }
