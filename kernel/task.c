@@ -13,6 +13,13 @@ static struct QueueHead TaskQueue;
 static struct TaskNode TaskQueueBuffer[16];
 TSS gTSS = {0};
 
+typedef struct QueueHead Queue;
+
+static Queue gFreeTask = {0};
+static Queue gReadyTask = {0};
+static Queue gRunningTask = {0};
+static Queue gWaittingTask = {0};
+
 static void TaskExit()
 {
    asm volatile(
