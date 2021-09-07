@@ -2,6 +2,8 @@
 #include "utility.h"
 #include "kprint.h"
 
+typedef struct QueueHead Queue;
+
 extern void (* const RunTask)(volatile Task* t);
 extern void (* const LoadTask)(volatile Task* t);
 
@@ -9,11 +11,9 @@ void (* const RunTask)(volatile Task* t);
 void (* const LoadTask)(volatile Task* t);
 
 volatile Task* gTaskAddr = NULL;
-static struct QueueHead TaskQueue;
+static Queue TaskQueue;
 static struct TaskNode TaskQueueBuffer[16];
 TSS gTSS = {0};
-
-typedef struct QueueHead Queue;
 
 static Queue gFreeTask = {0};
 static Queue gReadyTask = {0};
