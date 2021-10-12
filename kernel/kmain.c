@@ -1,9 +1,5 @@
 #include "interrupt.h"
-#include "kernel.h"
-#include "kprint.h"
-#include "const.h"
 #include "task.h"
-#include "utility.h"
 #include "logo.h"
 
 void KMain()
