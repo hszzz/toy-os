@@ -190,7 +190,7 @@ static void InitTaskTss(volatile Task* t)
     SetDescValue(&gGdtInfo.entry[GDT_TASK_LDT_INDEX], (uint)&t->ldt, sizeof(t->ldt) - 1, DA_LDT + DA_DPL0);
 }
 
-void InitTasks()
+void InitTaskModule()
 {
     // init task
     InitTask(&gTaskInitNode.task, TaskInit);

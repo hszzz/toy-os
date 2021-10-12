@@ -10,7 +10,7 @@ extern void (* const SendEOI)(uint port);
 int SetInterruptHandler(Gate* gate, uint func);
 int GetInterruptHandler(Gate* gate, uint* func);
 
-void InitInterrupts();
+void InitInterruptModule();
 
 #endif // INTERRUPT_H
 

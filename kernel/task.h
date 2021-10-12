@@ -55,7 +55,7 @@ struct TaskNode
     struct ListHead head;
 };
 
-void InitTasks();
+void InitTaskModule();
 void LaunchTask();
 void Schedule();
 

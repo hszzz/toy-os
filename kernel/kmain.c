@@ -26,8 +26,8 @@ void KMain()
     // PrintInt10((uint)gIdtInfo.size);
     // PrintChar('\n');
 
-    InitInterrupts();
-    InitTasks();
+    InitInterruptModule();
+    InitTaskModule();
     LaunchTask();
     while (1);
 }
