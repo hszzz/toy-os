@@ -43,4 +43,3 @@ void InitInterrupts()
     InitInterrupt();
     EnableTimer();
 }
-
