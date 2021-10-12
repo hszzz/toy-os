@@ -15,10 +15,12 @@ static Queue TaskQueue;
 static struct TaskNode TaskQueueBuffer[16];
 TSS gTSS = {0};
 
-static Queue gFreeTask = {0};
-static Queue gReadyTask = {0};
-static Queue gRunningTask = {0};
-static Queue gWaittingTask = {0};
+/*
+static Queue gFreeTasks     = {0};
+static Queue gReadyTasks    = {0};
+static Queue gRunningTasks  = {0};
+static Queue gWaittingTasks = {0};
+*/
 
 static void TaskExit()
 {
