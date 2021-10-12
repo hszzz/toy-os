@@ -2,8 +2,6 @@
 #include "utility.h"
 #include "kprint.h"
 
-typedef struct QueueHead Queue;
-
 extern void (* const RunTask)(volatile Task* t);
 extern void (* const LoadTask)(volatile Task* t);
 
@@ -11,16 +9,19 @@ void (* const RunTask)(volatile Task* t);
 void (* const LoadTask)(volatile Task* t);
 
 volatile Task* gTaskAddr = NULL;
-static Queue TaskQueue;
-static struct TaskNode TaskQueueBuffer[16];
 TSS gTSS = {0};
 
-/*
+typedef struct QueueHead Queue;
+#define MAX_TASK_NUM 32
+
+static struct TaskNode TaskQueueBuffer[MAX_TASK_NUM];
 static Queue gFreeTasks     = {0};
 static Queue gReadyTasks    = {0};
 static Queue gRunningTasks  = {0};
 static Queue gWaittingTasks = {0};
-*/
+
+// init task
+static struct TaskNode gTaskInitNode = {0};
 
 static void TaskExit()
 {
@@ -147,6 +148,16 @@ void TaskE()
     }
 }
 
+// init task, all task's parent
+void TaskInit()
+{
+    while (1)
+    {
+        SetPrintPosition(0, 8);
+        PrintString("init task ...");
+    }
+}
+
 static void InitTask(Task* t, void(*entry)())
 {
     t->rv.cs = LDT_CODE32_SELECTOR;
@@ -181,33 +192,42 @@ static void InitTaskTss(volatile Task* t)
 
 void InitTasks()
 {
+    // init task
+    InitTask(&gTaskInitNode.task, TaskInit);
+
+    QueueInit(&gFreeTasks);
+    QueueInit(&gReadyTasks);
+    QueueInit(&gRunningTasks);
+    QueueInit(&gWaittingTasks);
+
+    for (int i=0; i<MAX_TASK_NUM; ++i)
+    {
+        QueuePush(&gFreeTasks, &TaskQueueBuffer[i].head);
+    }
+
     SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&gTSS,   sizeof(gTSS) - 1,   DA_386TSS + DA_DPL0);
 
+    QueuePush(&gRunningTasks, &gTaskInitNode.head);
+    /*
 	InitTask(&TaskQueueBuffer[0].task, TaskA);
     InitTask(&TaskQueueBuffer[1].task, TaskB);
     InitTask(&TaskQueueBuffer[2].task, TaskC);
     InitTask(&TaskQueueBuffer[3].task, TaskD);
     InitTask(&TaskQueueBuffer[4].task, TaskE);
-
-    QueueInit(&TaskQueue);
-
-    for (int i=0; i<5; ++i)
-    {
-        QueuePush(&TaskQueue, &TaskQueueBuffer[i].head);
-    }
+    */
 }
 
 void LaunchTask()
 {
-    gTaskAddr = &QueueEntry(QueueFront(&TaskQueue), struct TaskNode, head)->task;
+    gTaskAddr = &QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head)->task;
     InitTaskTss(gTaskAddr);
     RunTask(gTaskAddr);
 }
 
 void Schedule()
 {
-    gTaskAddr = &QueueEntry(QueueFront(&TaskQueue), struct TaskNode, head)->task;
-    QueueRotate(&TaskQueue);
+    gTaskAddr = &QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head)->task;
+    QueueRotate(&gRunningTasks);
     InitTaskTss(gTaskAddr);
     LoadTask(gTaskAddr);
 }
