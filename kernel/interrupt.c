@@ -33,7 +33,7 @@ int GetInterruptHandler(Gate* gate, uint* func)
 	return ret;
 }
 
-void InitInterrupts()
+void InitInterruptModule()
 {
     // timer
 	SetInterruptHandler(gIdtInfo.entry + 0x20, (uint)TimerHandlerEntry);
@@ -43,4 +43,3 @@ void InitInterrupts()
     InitInterrupt();
     EnableTimer();
 }
-

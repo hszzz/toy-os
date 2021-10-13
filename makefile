@@ -18,7 +18,7 @@ BOCHSLOG := bochs.log
 CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 		-funsigned-char -finline-functions -finline-small-functions \
 		-findirect-inlining -finline-functions-called-once \
-		-ggdb -gstabs+ -fdump-rtl-expand -I./kernel -I./include
+		-ggdb -gstabs+ -fdump-rtl-expand -I./kernel -I./include -I./usr
 
 LD_SCRIPT  := -T./scripts/link.lds
 
@@ -45,7 +45,8 @@ OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/ihandler.o \
 	$(BUILD_DIR)/list.o \
 	$(BUILD_DIR)/queue.o \
-	$(BUILD_DIR)/syscall.o 
+	$(BUILD_DIR)/syscall.o \
+	$(BUILD_DIR)/app.o
 
 all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
 	

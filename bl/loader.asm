@@ -262,7 +262,7 @@ RunTask:
     add esp, 4
     iret
 
-; void LOadTask(Task*);
+; void LoadTask(Task*);
 LoadTask:
     push ebp
     mov  ebp, esp

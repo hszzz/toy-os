@@ -55,9 +55,10 @@ struct TaskNode
     struct ListHead head;
 };
 
-void InitTasks();
+void InitTaskModule();
 void LaunchTask();
 void Schedule();
+void TaskExit();
 
 #endif // TASK_H
 
