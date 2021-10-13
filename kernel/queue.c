@@ -53,7 +53,10 @@ int QueueLength(struct QueueHead* queue)
 
 void QueueRotate(struct QueueHead* queue)
 {
-    struct ListHead* node = queue->head.next;
-    ListDel(queue->head.next);
-    ListAddTail(&queue->head, node);
+    if (QueueLength(queue) > 1)
+    {
+        struct ListHead* node = queue->head.next;
+        ListDel(queue->head.next);
+        ListAddTail(&queue->head, node);
+    }
 }
