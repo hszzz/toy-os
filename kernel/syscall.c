@@ -1,6 +1,7 @@
 #include "syscall.h"
+#include "task.h"
 
 void _exit()
 {
-    // TODO: exit
+    TaskExit();
 }
