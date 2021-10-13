@@ -1,6 +1,7 @@
 #include "interrupt.h"
 #include "task.h"
 #include "logo.h"
+#include "app.h"
 
 void KMain()
 {
@@ -22,8 +23,9 @@ void KMain()
     // PrintInt10((uint)gIdtInfo.size);
     // PrintChar('\n');
 
-    InitInterruptModule();
+    InitAppModule();
     InitTaskModule();
+    InitInterruptModule();
     LaunchTask();
     while (1);
 }
