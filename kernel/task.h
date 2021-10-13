@@ -58,6 +58,7 @@ struct TaskNode
 void InitTaskModule();
 void LaunchTask();
 void Schedule();
+void TaskExit();
 
 #endif // TASK_H
 
