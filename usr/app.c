@@ -76,7 +76,7 @@ void TaskB()
 
     PrintString("Task B: ");
 
-    while (i < 20)
+    while (i < 9)
     {
         SetPrintPosition(8, 20);
         PrintChar('0' + i);
