@@ -26,14 +26,12 @@ void RegisterApplication(const char* name, void(*entry)(), ushort priority)
 
 void InitAppModule()
 {
-    RegisterApplication("task a", TaskA, 250);
+    RegisterApplication("task a", TaskA, 50);
     RegisterApplication("task b", TaskB, 50);
 
-    /*
-    RegisterApplication("task c", TaskC, 50);
-    RegisterApplication("task d", TaskD, 250);
-    RegisterApplication("task e", TaskE, 250);
-     */
+    RegisterApplication("task c", TaskC, 36);
+    RegisterApplication("task d", TaskD, 36);
+    RegisterApplication("task e", TaskE, 36);
 
     (void)TaskA;
     (void)TaskB;
@@ -86,7 +84,7 @@ void TaskB()
 
     PrintString("Task B: ");
 
-    while (1)
+    while (i < 8)
     {
         SetPrintPosition(8, 20);
         PrintChar('0' + i);
