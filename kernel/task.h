@@ -47,6 +47,9 @@ typedef struct
 	uint       id;
 	char       name[8];
 	byte       stack[512];
+    // priority
+    ushort current;
+    ushort total; // 256 - priority
 } Task;
 
 struct TaskNode

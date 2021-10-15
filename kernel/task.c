@@ -25,10 +25,14 @@ static Queue gWaittingTasks = {0};
 
 static uint gAppToRunIndex = 0;
 
+// pid
+#define MAX_PID 1024
+static ushort PID[MAX_PID] = {0};
+
 // idle task
 static struct TaskNode gTaskIdleNode = {0};
 // init task
-// static struct TaskNode gTaskInitNode = {0};
+static struct TaskNode gTaskInitNode = {0};
 
 static void TaskEntry()
 {
@@ -41,7 +45,6 @@ static void TaskEntry()
     "movl  $1, %eax \n"
     "int   $0x80   \n"
     );
-    // while (1);
 }
 
 void CheckQueue(Queue* queue, const char* name, int w, int h);
@@ -50,16 +53,9 @@ void TaskIdle()
 {
     while (1)
     {
-        SetPrintPosition(0, 7);
-        PrintString("idle task");
-        CheckQueue(&gFreeTasks, "FREE",   0, 9);
-        CheckQueue(&gReadyTasks, "READY", 0, 10);
-        CheckQueue(&gRunningTasks, "RUNNING", 0, 11);
-        /*
         asm volatile(
         "nop\n"
         );
-         */
     }
 }
 
@@ -68,12 +64,13 @@ void TaskInit()
 {
     while (1)
     {
-        SetPrintPosition(0, 8);
-        PrintString("init task ...");
+        CheckQueue(&gFreeTasks, "FREE",   0, 9);
+        CheckQueue(&gReadyTasks, "READY", 0, 10);
+        CheckQueue(&gRunningTasks, "RUNNING", 0, 11);
     }
 }
 
-static void InitTask(Task* t, const char* name, void(*entry)())
+static void InitTask(Task* t, const char* name, void(*entry)(), ushort pid, ushort priority)
 {
     t->rv.cs = LDT_CODE32_SELECTOR;
     t->rv.gs = LDT_GRAPHICS_SELECTOR;
@@ -88,6 +85,10 @@ static void InitTask(Task* t, const char* name, void(*entry)())
 
     t->tentry = entry;
     StrCpy(t->name, name);
+
+    t->id = pid;
+    t->current = 0;
+    t->total = 256 - priority;
 
     SetDescValue(t->ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
     SetDescValue(t->ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
@@ -119,7 +120,18 @@ static void CreateTask()
         if (task)
         {
             struct Application* app = GetAppInfo(gAppToRunIndex);
-            InitTask(&task->task, app->name, app->tentry);
+
+            ushort pid = 0;
+            for (int i=2; i<MAX_PID; ++i)
+            {
+                if (PID[i] == 0)
+                {
+                    PID[i] = 1;
+                    pid = i;
+                    break;
+                }
+            }
+            InitTask(&task->task, app->name, app->tentry, pid, app->priority);
             QueuePush(&gReadyTasks, &task->head);
         }
         else
@@ -135,7 +147,7 @@ static void CreateTask()
 // running queue is full, idle task will be remove
 static void CheckRunningTask()
 {
-    if (QueueLength(&gRunningTasks) == 0)
+    if (QueueIsEmpty(&gRunningTasks))
     {
         QueuePush(&gRunningTasks, &gTaskIdleNode.head);
     }
@@ -150,19 +162,34 @@ static void CheckRunningTask()
 
 static void ReadyToRunning()
 {
-    struct ListHead* node = NULL;
+    struct TaskNode* task = NULL;
 
-    if (QueueLength(&gReadyTasks) == 0)
+    if (QueueLength(&gReadyTasks) < MAX_READY_NUM)
     {
         CreateTask();
     }
 
     while ((QueueLength(&gReadyTasks) > 0) && (QueueLength(&gRunningTasks) < MAX_RUNNING_NUM))
     {
-        node = QueueFront(&gReadyTasks);
+        task = QueueEntry(QueueFront(&gReadyTasks), struct TaskNode, head);
         QueuePop(&gReadyTasks);
 
-        QueuePush(&gRunningTasks, node);
+        task->task.current = 0;
+        QueuePush(&gRunningTasks, &task->head);
+    }
+}
+
+static void RunningToReady()
+{
+    if (QueueLength(&gRunningTasks) > 0)
+    {
+        struct TaskNode *task = QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head);
+        if (task != &gTaskIdleNode) {
+            if (task->task.current == task->task.total) {
+                QueuePop(&gRunningTasks);
+                QueuePush(&gReadyTasks, &task->head);
+            }
+        }
     }
 }
 
@@ -181,9 +208,11 @@ void InitTaskModule()
     SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&gTSS, sizeof(gTSS) - 1, DA_386TSS + DA_DPL0);
 
     // idle task
-    InitTask(&gTaskIdleNode.task, "IDLE", TaskIdle);
+    InitTask(&gTaskIdleNode.task, "IDLE", TaskIdle, 0, 0);
+    PID[0] = 1;
     // init task
-    // InitTask(&gTaskInitNode.task, "INIT", TaskInit);
+    InitTask(&gTaskInitNode.task, "INIT", TaskInit, 1, 0);
+    PID[1] = 1;
 
     // QueuePush(&gRunningTasks, &gTaskInitNode.head);
     // QueuePush(&gRunningTasks, &gTaskIdleNode.head);
@@ -199,12 +228,22 @@ void LaunchTask()
     RunTask(gTaskAddr);
 }
 
+void ps(int w, int h);
 void Schedule()
 {
+    // CheckQueue(&gReadyTasks, "READY", 0, 7);
+    // CheckQueue(&gRunningTasks, "RUNNING", 0, 8);
+    // CheckQueue(&gFreeTasks, "FREE", 0, 9);
+    ps(0, 7);
+
+    RunningToReady();
     ReadyToRunning();
     CheckRunningTask();
     QueueRotate(&gRunningTasks);
     gTaskAddr = &QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head)->task;
+
+    gTaskAddr->current++;
+
     InitTaskTss(gTaskAddr);
     LoadTask(gTaskAddr);
 }
@@ -231,13 +270,38 @@ void CheckQueue(Queue* queue, const char* name, int w, int h)
     {
         PrintString("empty");
     }
+    PrintString("                                 ");
 }
 
 void TaskExit()
 {
-    struct ListHead* node = QueueFront(&gRunningTasks);
+    struct TaskNode* task = QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head);
     QueuePop(&gRunningTasks);
-    QueuePush(&gFreeTasks, node);
+
+    // release resource
+    PID[task->task.id] = 0;
+    StrCpy(task->task.name, "");
+
+    QueuePush(&gFreeTasks, &task->head);
 
     Schedule();
+}
+
+void ps(int w, int h)
+{
+    SetPrintPosition(w, h);
+    PrintString("PID    NAME    TOTAL    CURRENT\n");
+    struct ListHead* pos = NULL;
+    ListForEach(pos, &gRunningTasks.head)
+    {
+        struct TaskNode* node = ListEntry(pos, struct TaskNode, head);
+        PrintInt10((uint)node->task.id);
+        PrintString("    ");
+        PrintString(node->task.name);
+        PrintString("    ");
+        PrintInt10(node->task.total);
+        PrintString("    ");
+        PrintInt10(node->task.current);
+        PrintString("\n");
+    }
 }
