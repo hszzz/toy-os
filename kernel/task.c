@@ -69,7 +69,7 @@ void TaskInit()
     }
 }
 
-static void InitTask(Task* t, const char* name, void(*entry)())
+static void InitTask(Task* t, const char* name, void(*entry)(), ushort priority)
 {
     t->rv.cs = LDT_CODE32_SELECTOR;
     t->rv.gs = LDT_GRAPHICS_SELECTOR;
@@ -84,6 +84,9 @@ static void InitTask(Task* t, const char* name, void(*entry)())
 
     t->tentry = entry;
     StrCpy(t->name, name);
+
+    t->current = 0;
+    t->total = 256 - priority;
 
     SetDescValue(t->ldt + LDT_GRAPHICS_INDEX, 0xB8000, 0x07FFF, DA_DRWA + DA_32 + DA_DPL3);
     SetDescValue(t->ldt + LDT_CODE32_INDEX,   0x00,    0xFFFFF, DA_C    + DA_32 + DA_DPL3);
@@ -115,7 +118,7 @@ static void CreateTask()
         if (task)
         {
             struct Application* app = GetAppInfo(gAppToRunIndex);
-            InitTask(&task->task, app->name, app->tentry);
+            InitTask(&task->task, app->name, app->tentry, app->priority);
             QueuePush(&gReadyTasks, &task->head);
         }
         else
@@ -146,7 +149,7 @@ static void CheckRunningTask()
 
 static void ReadyToRunning()
 {
-    struct ListHead* node = NULL;
+    struct TaskNode* task = NULL;
 
     if (QueueLength(&gReadyTasks) < MAX_READY_NUM)
     {
@@ -155,10 +158,24 @@ static void ReadyToRunning()
 
     while ((QueueLength(&gReadyTasks) > 0) && (QueueLength(&gRunningTasks) < MAX_RUNNING_NUM))
     {
-        node = QueueFront(&gReadyTasks);
+        task = QueueEntry(QueueFront(&gReadyTasks), struct TaskNode, head);
         QueuePop(&gReadyTasks);
 
-        QueuePush(&gRunningTasks, node);
+        task->task.current = 0;
+        QueuePush(&gRunningTasks, &task->head);
+    }
+}
+
+static void RunningToReady()
+{
+    struct TaskNode* task = QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head);
+    if (task != &gTaskIdleNode)
+    {
+        if (task->task.current >= task->task.total)
+        {
+            QueuePop(&gRunningTasks);
+            QueuePush(&gReadyTasks, &task->head);
+        }
     }
 }
 
@@ -177,7 +194,7 @@ void InitTaskModule()
     SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&gTSS, sizeof(gTSS) - 1, DA_386TSS + DA_DPL0);
 
     // idle task
-    InitTask(&gTaskIdleNode.task, "IDLE", TaskIdle);
+    InitTask(&gTaskIdleNode.task, "IDLE", TaskIdle, 0);
     // init task
     // InitTask(&gTaskInitNode.task, "INIT", TaskInit);
 
@@ -197,10 +214,14 @@ void LaunchTask()
 
 void Schedule()
 {
+    RunningToReady();
     ReadyToRunning();
     CheckRunningTask();
     QueueRotate(&gRunningTasks);
     gTaskAddr = &QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head)->task;
+
+    gTaskAddr->current++;
+
     InitTaskTss(gTaskAddr);
     LoadTask(gTaskAddr);
 }
