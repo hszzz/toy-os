@@ -50,16 +50,9 @@ void TaskIdle()
 {
     while (1)
     {
-        SetPrintPosition(0, 7);
-        PrintString("idle task");
-        CheckQueue(&gFreeTasks, "FREE",   0, 9);
-        CheckQueue(&gReadyTasks, "READY", 0, 10);
-        CheckQueue(&gRunningTasks, "RUNNING", 0, 11);
-        /*
         asm volatile(
         "nop\n"
         );
-         */
     }
 }
 
@@ -68,8 +61,11 @@ void TaskInit()
 {
     while (1)
     {
-        SetPrintPosition(0, 8);
-        PrintString("init task ...");
+        SetPrintPosition(0, 7);
+        PrintString("idle task");
+        CheckQueue(&gFreeTasks, "FREE",   0, 9);
+        CheckQueue(&gReadyTasks, "READY", 0, 10);
+        CheckQueue(&gRunningTasks, "RUNNING", 0, 11);
     }
 }
 
@@ -152,7 +148,7 @@ static void ReadyToRunning()
 {
     struct ListHead* node = NULL;
 
-    if (QueueLength(&gReadyTasks) == 0)
+    if (QueueLength(&gReadyTasks) < MAX_READY_NUM)
     {
         CreateTask();
     }
