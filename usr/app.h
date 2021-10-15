@@ -7,6 +7,7 @@ struct Application
 {
     const char* name;
     void (*tentry)();
+    ushort priority;
 };
 
 void InitAppModule();

@@ -14,22 +14,32 @@ void TaskC();
 void TaskD();
 void TaskE();
 
-void RegisterApplication(const char* name, void(*entry)())
+void RegisterApplication(const char* name, void(*entry)(), ushort priority)
 {
     struct Application* app = &gApps[gAppNum];
     app->name = name;
     app->tentry = entry;
+    app->priority = priority >= 255 ? 255 : priority;
 
     gAppNum += 1;
 }
 
 void InitAppModule()
 {
-    RegisterApplication("task a", TaskA);
-    RegisterApplication("task b", TaskB);
-    RegisterApplication("task c", TaskC);
-    RegisterApplication("task d", TaskD);
-    RegisterApplication("task e", TaskE);
+    RegisterApplication("task a", TaskA, 250);
+    RegisterApplication("task b", TaskB, 50);
+
+    /*
+    RegisterApplication("task c", TaskC, 50);
+    RegisterApplication("task d", TaskD, 250);
+    RegisterApplication("task e", TaskE, 250);
+     */
+
+    (void)TaskA;
+    (void)TaskB;
+    (void)TaskC;
+    (void)TaskD;
+    (void)TaskE;
 }
 
 struct Application* GetAppInfo(uint index)
@@ -76,7 +86,7 @@ void TaskB()
 
     PrintString("Task B: ");
 
-    while (i < 9)
+    while (1)
     {
         SetPrintPosition(8, 20);
         PrintChar('0' + i);
