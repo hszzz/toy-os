@@ -292,16 +292,18 @@ void ps(int w, int h)
     SetPrintPosition(w, h);
     PrintString("PID    NAME    TOTAL    CURRENT\n");
     struct ListHead* pos = NULL;
+    int i = h;
     ListForEach(pos, &gRunningTasks.head)
     {
         struct TaskNode* node = ListEntry(pos, struct TaskNode, head);
         PrintInt10((uint)node->task.id);
-        PrintString("    ");
+        SetPrintPosition(7, i + 1);
         PrintString(node->task.name);
-        PrintString("    ");
+        SetPrintPosition(16, i + 1);
         PrintInt10(node->task.total);
-        PrintString("    ");
+        SetPrintPosition(25, i + 1);
         PrintInt10(node->task.current);
         PrintString("\n");
+        i += 1;
     }
 }
