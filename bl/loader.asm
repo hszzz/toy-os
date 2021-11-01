@@ -1,7 +1,7 @@
 org 0x9000
 
+%include "blfunc.asm"
 %include "common.asm"
-%include "apploader.asm"
 
 BaseOfStack  equ 0x9000
 BaseOfTarget equ 0xD000
