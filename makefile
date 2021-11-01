@@ -23,7 +23,7 @@ CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 LD_SCRIPT  := -T./scripts/link.lds
 
 BOOT_SRC   := bl/boot.asm
-LOADER_SRC := bl/loader.asm
+LOADER_SRC := bl/loader.asm bl/apploader.asm
 BLFUNC_SRC := bl/blfunc.asm
 COMMON_SRC := bl/common.asm
 KENTRY_SRC := kernel/kentry.asm
