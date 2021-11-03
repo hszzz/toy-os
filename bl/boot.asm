@@ -7,9 +7,10 @@ org 0x7c00
 %include "common.asm"
 
 BaseOfStack  equ 0x7c00
-BaseOfTarget equ 0x9000
-Target       db  "LOADER     "
-TarLen       equ $ - Target
+BaseOfLoader equ 0x9000
+
+Loader       db  "LOADER     "
+LoaderLen    equ ($ - Loader)
 
 BLMain:
     mov ax, cs
@@ -18,20 +19,31 @@ BLMain:
     mov es, ax
     mov sp, SPInitValue
 
+    push word Buffer
+    push word BaseOfLoader / 0x10
+    push word BaseOfLoader
+    push word LoaderLen
+    push word Loader
     call LoadTarget
 
     cmp dx, 0
     jz output
-    jmp BaseOfTarget
+    jmp BaseOfLoader
 
 output:
+    mov ax, cs
+    mov es, ax
     mov bp, Error
     mov cx, ErrLen
-    call Print
+    xor dx, dx
+    mov ax, 0x1301
+    mov bx, 0x0007
+    int 0x10
+
     jmp $
 
 Error  db  "No Loader"
-ErrLen equ $ - Error
+ErrLen equ ($ - Error)
 
 Buffer:
     times 510-($-$$) db 0x00
