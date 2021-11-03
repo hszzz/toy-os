@@ -4,9 +4,13 @@ org 0x9000
 %include "common.asm"
 
 BaseOfStack  equ 0x9000
-BaseOfTarget equ 0xD000
-Target       db  "KERNEL     "
-TarLen       equ $-Target
+BaseOfKernel equ 0xD000
+BaseOfApp    equ 0xF000
+Kernel       db  "KERNEL     "
+KernelLen    equ ($ - Kernel)
+
+App          db  "APP        "
+AppLen       equ ($ - App)
 
 [section .gdt]
 ; GDT definition
@@ -79,10 +83,32 @@ BLMain:
     add eax, IDT_ENTRY
     mov dword [IDT_PTR + 2], eax
 
+    ; push word Buffer
+    ; push word BaseOfApp / 0x10
+    ; push word BaseOfApp
+    ; push word AppLen
+    ; push word App
+    ; call LoadTarget
+
+    ; add sp, 10
+
+    ; cmp dx, 0
+    ; jz AppErr
+
+    mov ax, cs
+    mov es, ax
+
+    push word Buffer
+    push word BaseOfKernel / 0x10
+    push word BaseOfKernel
+    push word KernelLen
+    push word Kernel
     call LoadTarget
-	
+
+    add sp, 10
+
     cmp dx, 0
-    jz output
+    jz KernelErr
 
     call StoreGlobalFunc
 
@@ -117,10 +143,23 @@ BLMain:
     ; 5. jump to 32 bits code
     jmp dword Code32Selector : 0
 
+AppErr:
+    mov bp, NotFoundApp
+    mov cx, NotFoundAppLen
+    jmp output
+
+KernelErr:
+    mov bp, NotFoundKernel
+    mov cx, NotFoundKernelLen
+    jmp output
+
 output:	
-    mov bp, Error
-    mov cx, ErrLen
-    call Print
+    mov ax, cs
+    mov es, ax
+    mov dx, 0
+    mov ax, 0x1301
+    mov bx, 0x0007
+    int 0x10
 	
     jmp $
 
@@ -346,7 +385,7 @@ CODE32_SEGMENT:
     mov ss, ax
     mov esp, BaseOfStack
 
-    jmp dword Code32FlatSelector : BaseOfTarget
+    jmp dword Code32FlatSelector : BaseOfKernel
 
 ; default interrupt handler
 DefaultHandlerFunc:
@@ -356,7 +395,10 @@ DefaultHandler    equ    DefaultHandlerFunc - $$
 
 Code32SegmentLen    equ    $ - CODE32_SEGMENT
 
-Error  db  "No KERNEL"	
-ErrLen equ $-Error
+NotFoundKernel    db  "NOT FOUND KERNEL"
+NotFoundKernelLen equ ($ - NotFoundKernel)
+
+NotFoundApp    db  "NOT FOUND App"
+NotFoundAppLen equ ($ - NotFoundApp)
 
 Buffer db  0
