@@ -1,4 +1,3 @@
-
 jmp short _start
 nop
 
@@ -34,21 +33,29 @@ const:
     
 _start:
     jmp BLMain
-    
+
+; load target(loader, kernel, app) to memory
+; running in 16 bits, sizeof(char*) == 2
 ;
+; ushort LoadTarget(char* tareget,
+;                   ushort TarLen,
+;                   ushort BaseOfTarget,
+;                   ushort BOT_DIV_0x10,
+;                   char*  Buffer);
 ; return:
 ;     dx --> (dx != 0) ? success : failure
 LoadTarget:
+    mov bp, sp
+
 	mov ax, RootEntryOffset
 	mov cx, RootEntryLength
-	mov bx, Buffer
+	mov bx, [bp + 10] ; Buffer
 	
 	call ReadSector
 	
-	mov si, Target
-	mov cx, TarLen
+	mov si, [bp + 2] ; Target
+	mov cx, [bp + 4] ; TarLen
 	mov dx, 0
-	
 	call FindEntry
 	
 	cmp dx, 0
@@ -57,24 +64,23 @@ LoadTarget:
 	mov si, bx
 	mov di, EntryItem
 	mov cx, EntryItemLength
-	
 	call MemCpy
-	
+
+	mov bp, sp
 	mov ax, FatEntryLength
 	mov cx, [BPB_BytsPerSec]
 	mul cx
-	mov bx, BaseOfTarget
+	mov bx, [bp + 6]
 	sub bx, ax
 	
 	mov ax, FatEntryOffset
 	mov cx, FatEntryLength
-	
 	call ReadSector
 	
 	mov dx, [EntryItem + 0x1A]
-	mov si, BaseOfTarget / 0x10
-	mov es, si
-	mov si, 0
+	; mov si, BaseOfTarget / 0x10
+	mov es, [bp + 8]
+	xor si, si
 	
 loading:
     mov ax, dx
@@ -160,7 +166,6 @@ return:
 ; es:di --> destination
 ; cx    --> length
 MemCpy:
-    
     cmp si, di
     
     ja btoe
@@ -256,28 +261,31 @@ noequal:
 
 ; es:bp --> string address
 ; cx    --> string length
-Print:
-    mov dx, 0
-    mov ax, 0x1301
-    mov bx, 0x0007
-    int 0x10
-    ret
+; Print:
+;    mov dx, 0
+;    mov ax, 0x1301
+;    mov bx, 0x0007
+;    int 0x10
+;    ret
 
 ; no parameter
-ResetFloppy:
-    push ax
-    mov ah, 0x00
-    mov dl, [BS_DrvNum]
-    int 0x13
-    pop ax
-    ret
+; ResetFloppy:
+;     push ax
+;     mov ah, 0x00
+;     mov dl, [BS_DrvNum]
+;     int 0x13
+;     pop ax
+;     ret
 
 ; ax    --> logic sector number
 ; cx    --> number of sector
 ; es:bx --> target address
 ReadSector:
     
-    call ResetFloppy
+    mov ah, 0x00
+    mov dl, [BS_DrvNum]
+    int 0x13
+    ; call ResetFloppy
     
     push bx
     push cx
