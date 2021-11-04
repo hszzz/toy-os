@@ -20,7 +20,7 @@ CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 		-findirect-inlining -finline-functions-called-once \
 		-ggdb -gstabs+ -fdump-rtl-expand -I./kernel -I./include -I./usr
 
-LD_SCRIPT  := -T./scripts/link.lds
+LD_SCRIPT_KERNEL := -T./scripts/kernel.lds
 
 BOOT_SRC   := bl/boot.asm
 LOADER_SRC := bl/loader.asm
@@ -79,7 +79,7 @@ $(BUILD_DIR)/%.o : */%.c
 	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
 
 $(KERNEL_ELF) : $(KENTRY_OUT) $(OBJS)
-	$(LD) $(LD_SCRIPT) -m elf_i386 -s $^ -o $@
+	$(LD) $(LD_SCRIPT_KERNEL) -m elf_i386 -s $^ -o $@
 	
 rebuild :
 	$(MAKE) clean
