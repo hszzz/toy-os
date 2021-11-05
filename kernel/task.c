@@ -5,9 +5,13 @@
 
 extern void (* const RunTask)(volatile Task* t);
 extern void (* const LoadTask)(volatile Task* t);
-
 void (* const RunTask)(volatile Task* t);
 void (* const LoadTask)(volatile Task* t);
+
+extern struct Application* (*GetAppInfo)(uint index);
+extern uint (*GetAppNum)();
+struct Application* (*GetAppInfo)(uint index);
+uint (*GetAppNum)();
 
 volatile Task* gTaskAddr = NULL;
 TSS gTSS = {0};
