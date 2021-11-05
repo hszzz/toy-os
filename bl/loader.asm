@@ -83,17 +83,17 @@ BLMain:
     add eax, IDT_ENTRY
     mov dword [IDT_PTR + 2], eax
 
-    ; push word Buffer
-    ; push word BaseOfApp / 0x10
-    ; push word BaseOfApp
-    ; push word AppLen
-    ; push word App
-    ; call LoadTarget
+    push word Buffer
+    push word BaseOfApp / 0x10
+    push word BaseOfApp
+    push word AppLen
+    push word App
+    call LoadTarget
 
-    ; add sp, 10
+    add sp, 10
 
-    ; cmp dx, 0
-    ; jz AppErr
+    cmp dx, 0
+    jz AppErr
 
     mov ax, cs
     mov es, ax
