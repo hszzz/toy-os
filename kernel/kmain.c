@@ -1,13 +1,13 @@
 #include "interrupt.h"
 #include "task.h"
 #include "logo.h"
-#include "app.h"
+
+extern void (*InitAppModule)();
+void (*InitAppModule)();
 
 void KMain()
 {
     PrintLogo();
-
-    void (*InitAppModule)() = (void*)0xF000; // base of app memory
 
     // PrintString("GDT Entry: ");
     // PrintInt16((uint)gGdtInfo.entry);
