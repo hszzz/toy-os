@@ -85,6 +85,8 @@ BLMain:
 
     push word Buffer
     push word BaseOfApp / 0x10
+
+    ; FIXME: address out of register bits
     push word BaseOfApp
     push word AppLen
     push word App
