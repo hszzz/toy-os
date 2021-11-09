@@ -20,7 +20,8 @@ CFLAGS := -m32 -O0 -Wall -Werror -nostdinc -fno-builtin -fno-stack-protector \
 		-findirect-inlining -finline-functions-called-once \
 		-ggdb -gstabs+ -fdump-rtl-expand -I./kernel -I./include -I./usr
 
-LD_SCRIPT  := -T./scripts/link.lds
+LD_SCRIPT_KERNEL := -T./scripts/kernel.lds
+LD_SCRIPT_APP    := -T./scripts/app.lds
 
 BOOT_SRC   := bl/boot.asm
 LOADER_SRC := bl/loader.asm
@@ -36,7 +37,7 @@ LOADER_OUT := $(BUILD_DIR)/loader
 KERNEL_OUT := $(BUILD_DIR)/kernel
 KENTRY_OUT := $(BUILD_DIR)/kentry.o
 
-OBJS := $(BUILD_DIR)/kmain.o \
+KERNEL_OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/kprint.o \
 	$(BUILD_DIR)/kernel.o \
 	$(BUILD_DIR)/interrupt.o \
@@ -48,7 +49,16 @@ OBJS := $(BUILD_DIR)/kmain.o \
 	$(BUILD_DIR)/syscall.o \
 	$(BUILD_DIR)/app.o
 
-all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT)
+APP_ENTRY_SRC := kernel/aentry.asm
+APP_ENTRY_OUT := $(BUILD_DIR)/aentry.o
+
+APP_ELF  := $(BUILD_DIR)/app.out
+APP_OUT  := $(BUILD_DIR)/app
+APP_OBJS := $(BUILD_DIR)/kprint.o  \
+			$(BUILD_DIR)/utility.o \
+			$(BUILD_DIR)/app.o
+
+all : $(BUILD_DIR) $(IMAGE) $(BOOT_OUT) $(LOADER_OUT) $(KERNEL_OUT) $(APP_OUT)
 	
 $(IMAGE) :
 	bximage $@ -q -fd -size=1.44
@@ -78,9 +88,21 @@ $(KERNEL_OUT) : $(KERNEL_ELF)
 $(BUILD_DIR)/%.o : */%.c
 	$(CC) $(CFLAGS) -o $@ -c $(filter %.c, $^)
 
-$(KERNEL_ELF) : $(KENTRY_OUT) $(OBJS)
-	$(LD) $(LD_SCRIPT) -m elf_i386 -s $^ -o $@
-	
+$(KERNEL_ELF) : $(KENTRY_OUT) $(KERNEL_OBJS)
+	$(LD) $(LD_SCRIPT_KERNEL) -m elf_i386 -s $^ -o $@
+
+$(APP_ENTRY_OUT) : $(APP_ENTRY_SRC) $(COMMON_SRC)
+	$(AS) -I./bl/ -f elf32 $< -o $@
+
+$(APP_ELF) : $(APP_ENTRY_OUT) $(APP_OBJS)
+	$(LD) $(LD_SCRIPT_APP) -m elf_i386 -s $^ -o $@
+
+$(APP_OUT) : $(APP_ELF)
+	objcopy -O binary $< $@
+	sudo mount -o loop $(IMAGE) $(IMAGE_PATH)
+	sudo cp $@ $(IMAGE_PATH)/app
+	sudo umount $(IMAGE_PATH)
+
 rebuild :
 	$(MAKE) clean
 	$(MAKE) all

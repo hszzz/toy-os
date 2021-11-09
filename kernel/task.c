@@ -2,12 +2,23 @@
 #include "utility.h"
 #include "kprint.h"
 #include "app.h"
+#include "const.h"
 
 extern void (* const RunTask)(volatile Task* t);
 extern void (* const LoadTask)(volatile Task* t);
-
 void (* const RunTask)(volatile Task* t);
 void (* const LoadTask)(volatile Task* t);
+
+
+static struct Application* (*GetAppInfo)(uint index) = NULL;
+static uint (*GetAppNum)() = NULL;
+
+/*
+extern struct Application* (*GetAppInfo)(uint index);
+extern uint (*GetAppNum)();
+struct Application* (*GetAppInfo)(uint index);
+uint (*GetAppNum)();
+*/
 
 volatile Task* gTaskAddr = NULL;
 TSS gTSS = {0};
@@ -195,6 +206,9 @@ static void RunningToReady()
 
 void InitTaskModule()
 {
+    GetAppInfo = (void*)(*((uint*)GetAppInfoEntry));
+    GetAppNum = (void*)(*((uint*)GetAppNumEntry));
+
     QueueInit(&gFreeTasks);
     QueueInit(&gReadyTasks);
     QueueInit(&gRunningTasks);

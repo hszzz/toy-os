@@ -24,6 +24,17 @@ void RegisterApplication(const char* name, void(*entry)(), ushort priority)
     gAppNum += 1;
 }
 
+void AppMain()
+{
+    RegisterApplication("task a", TaskA, 50);
+    RegisterApplication("task b", TaskB, 50);
+
+    RegisterApplication("task c", TaskC, 36);
+    RegisterApplication("task d", TaskD, 36);
+    RegisterApplication("task e", TaskE, 36);
+}
+
+/*
 void InitAppModule()
 {
     RegisterApplication("task a", TaskA, 50);
@@ -39,6 +50,7 @@ void InitAppModule()
     (void)TaskD;
     (void)TaskE;
 }
+*/
 
 struct Application* GetAppInfo(uint index)
 {

@@ -4,8 +4,8 @@ org 0x9000
 %include "common.asm"
 
 BaseOfStack  equ 0x9000
-BaseOfKernel equ 0xD000
-BaseOfApp    equ 0xF000
+BaseOfKernel equ 0xB000
+BaseOfApp    equ 0x1F000
 Kernel       db  "KERNEL     "
 KernelLen    equ ($ - Kernel)
 
@@ -83,17 +83,19 @@ BLMain:
     add eax, IDT_ENTRY
     mov dword [IDT_PTR + 2], eax
 
-    ; push word Buffer
-    ; push word BaseOfApp / 0x10
-    ; push word BaseOfApp
-    ; push word AppLen
-    ; push word App
-    ; call LoadTarget
+    push word Buffer
+    push word BaseOfApp / 0x10
 
-    ; add sp, 10
+    ; FIXME: address out of register bits
+    push word BaseOfApp
+    push word AppLen
+    push word App
+    call LoadTarget
 
-    ; cmp dx, 0
-    ; jz AppErr
+    add sp, 10
+
+    cmp dx, 0
+    jz AppErr
 
     mov ax, cs
     mov es, ax

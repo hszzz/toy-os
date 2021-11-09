@@ -67,5 +67,9 @@
 #define MASTER_EOI_PORT 0x20
 #define SLAVE_EOI_PORT  0xA0
 
+#define BaseOfSharedMemory 0xA000
+#define GetAppInfoEntry   (BaseOfSharedMemory + 36)
+#define GetAppNumEntry    (BaseOfSharedMemory + 40)
+
 #endif
 
