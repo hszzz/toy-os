@@ -4,8 +4,8 @@ org 0x9000
 %include "common.asm"
 
 BaseOfStack  equ 0x9000
-BaseOfKernel equ 0xD000
-BaseOfApp    equ 0xF000
+BaseOfKernel equ 0xB000
+BaseOfApp    equ 0x1F000
 Kernel       db  "KERNEL     "
 KernelLen    equ ($ - Kernel)
 

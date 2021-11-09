@@ -3,11 +3,14 @@
 #include "logo.h"
 
 extern void (*InitAppModule)();
-void (*InitAppModule)();
+void (*InitAppModule)() = (void*)0x1F000;
 
 void KMain()
 {
     PrintLogo();
+    PrintString("enter kernel !!!\n");
+    PrintInt16((int)InitAppModule);
+    // void (*InitAppModule)() = (void*)0xF000;
 
     // PrintString("GDT Entry: ");
     // PrintInt16((uint)gGdtInfo.entry);
@@ -31,4 +34,3 @@ void KMain()
     LaunchTask();
     while (1);
 }
-
