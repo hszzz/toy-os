@@ -13,13 +13,6 @@ void (* const LoadTask)(volatile Task* t);
 static struct Application* (*GetAppInfo)(uint index) = NULL;
 static uint (*GetAppNum)() = NULL;
 
-/*
-extern struct Application* (*GetAppInfo)(uint index);
-extern uint (*GetAppNum)();
-struct Application* (*GetAppInfo)(uint index);
-uint (*GetAppNum)();
-*/
-
 volatile Task* gTaskAddr = NULL;
 TSS gTSS = {0};
 
@@ -196,7 +189,8 @@ static void RunningToReady()
     {
         struct TaskNode *task = QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head);
         if (task != &gTaskIdleNode) {
-            if (task->task.current == task->task.total) {
+            if (task->task.current == task->task.total)
+            {
                 QueuePop(&gRunningTasks);
                 QueuePush(&gReadyTasks, &task->head);
             }
@@ -228,9 +222,6 @@ void InitTaskModule()
     InitTask(&gTaskInitNode.task, "INIT", TaskInit, 1, 0);
     PID[1] = 1;
 
-    // QueuePush(&gRunningTasks, &gTaskInitNode.head);
-    // QueuePush(&gRunningTasks, &gTaskIdleNode.head);
-
     ReadyToRunning();
     CheckRunningTask();
 }
@@ -242,14 +233,8 @@ void LaunchTask()
     RunTask(gTaskAddr);
 }
 
-void ps(int w, int h);
 void Schedule()
 {
-    // CheckQueue(&gReadyTasks, "READY", 0, 7);
-    // CheckQueue(&gRunningTasks, "RUNNING", 0, 8);
-    // CheckQueue(&gFreeTasks, "FREE", 0, 9);
-    ps(0, 7);
-
     RunningToReady();
     ReadyToRunning();
     CheckRunningTask();
@@ -299,25 +284,4 @@ void TaskExit()
     QueuePush(&gFreeTasks, &task->head);
 
     Schedule();
-}
-
-void ps(int w, int h)
-{
-    SetPrintPosition(w, h);
-    PrintString("PID    NAME    TOTAL    CURRENT\n");
-    struct ListHead* pos = NULL;
-    int i = h;
-    ListForEach(pos, &gRunningTasks.head)
-    {
-        struct TaskNode* node = ListEntry(pos, struct TaskNode, head);
-        PrintInt10((uint)node->task.id);
-        SetPrintPosition(7, i + 1);
-        PrintString(node->task.name);
-        SetPrintPosition(16, i + 1);
-        PrintInt10(node->task.total);
-        SetPrintPosition(25, i + 1);
-        PrintInt10(node->task.current);
-        PrintString("\n");
-        i += 1;
-    }
 }
