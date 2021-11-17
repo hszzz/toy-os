@@ -10,8 +10,4 @@ struct Application
     ushort priority;
 };
 
-// void InitAppModule();
-// struct Application* GetAppInfo(uint index);
-// uint GetAppNum();
-
 #endif // APP_H
