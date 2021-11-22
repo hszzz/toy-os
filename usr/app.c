@@ -34,24 +34,6 @@ void AppMain()
     RegisterApplication("task e", TaskE, 36);
 }
 
-/*
-void InitAppModule()
-{
-    RegisterApplication("task a", TaskA, 50);
-    RegisterApplication("task b", TaskB, 50);
-
-    RegisterApplication("task c", TaskC, 36);
-    RegisterApplication("task d", TaskD, 36);
-    RegisterApplication("task e", TaskE, 36);
-
-    (void)TaskA;
-    (void)TaskB;
-    (void)TaskC;
-    (void)TaskD;
-    (void)TaskE;
-}
-*/
-
 struct Application* GetAppInfo(uint index)
 {
     struct Application* app = NULL;

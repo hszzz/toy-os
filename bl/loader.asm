@@ -87,6 +87,8 @@ BLMain:
     push word BaseOfApp / 0x10
 
     ; FIXME: address out of register bits
+    ; kernel size is too large
+    ; reduce the size of kernel or refactor loadtarget
     push word BaseOfApp
     push word AppLen
     push word App
