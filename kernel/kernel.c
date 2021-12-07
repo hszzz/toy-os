@@ -34,3 +34,16 @@ int GetDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr)
 	return ret;
 }
 
+void PageConfig()
+{
+    uint* base = (uint*)PageDirBase;
+    uint index = 0x1F000 / 0x1000 - 1;
+
+    for (int i=0; i<=index; ++i)
+    {
+        uint* addr = base + i;
+        uint value = *addr;
+        value = value & 0xFFFFFFFD;
+        *addr = value;
+    }
+}
