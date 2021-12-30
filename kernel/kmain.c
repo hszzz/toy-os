@@ -28,6 +28,7 @@ void KMain()
     InitAppModule();
     InitTaskModule();
     InitInterruptModule();
+    PageConfig();
     LaunchTask();
     while (1);
 }

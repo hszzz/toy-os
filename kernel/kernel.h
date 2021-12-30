@@ -41,5 +41,7 @@ int GetDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr);
 extern GdtInfo gGdtInfo;
 extern IdtInfo gIdtInfo;
 
+void PageConfig();
+
 #endif
 

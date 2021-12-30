@@ -71,5 +71,8 @@
 #define GetAppInfoEntry   (BaseOfSharedMemory + 36)
 #define GetAppNumEntry    (BaseOfSharedMemory + 40)
 
+#define PageDirBase 0xF0000
+#define PageTblBase 0xF1000
+
 #endif
 

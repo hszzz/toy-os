@@ -104,3 +104,7 @@ SendEOIEntry         equ    BaseOfSharedMemory + 28
 LoadTaskEntry        equ    BaseOfSharedMemory + 32
 GetAppInfoEntry      equ    BaseOfSharedMemory + 36
 GetAppNumEntry       equ    BaseOfSharedMemory + 40
+
+; Page
+PageDirBase    equ    0xF0000
+PageTblBase    equ    0xF1000

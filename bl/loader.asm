@@ -23,6 +23,11 @@ DATA32_FLAT_DESC   :   Descriptor    0,       0xFFFFF,              DA_DRW + DA_
 ; these two descriptor can load a process dynamicly
 TASK_LDT_DESC      :   Descriptor    0,       0,                    0
 TASK_TSS_DESC      :   Descriptor    0,       0,                    0
+
+; page
+PAGE_DIR_DESC      :   Descriptor    PageDirBase,       4095,       DA_DRW + DA_LIMIT_4K + DA_32
+PAGE_TBL_DESC      :   Descriptor    PageTblBase,       1023,       DA_DRW + DA_LIMIT_4K + DA_32
+
 ; GDT end
 
 GdtLen    equ   $ - GDT_ENTRY
@@ -37,6 +42,9 @@ Code32Selector      equ  (0x0001 << 3) + SA_TIG + SA_RPL0
 GraphicsSelector    equ  (0x0002 << 3) + SA_TIG + SA_RPL0
 Code32FlatSelector  equ  (0x0003 << 3) + SA_TIG + SA_RPL0
 Data32FlatSelector  equ  (0x0004 << 3) + SA_TIG + SA_RPL0
+
+PageDirSelector     equ  (0x0007 << 3) + SA_TIG + SA_RPL0
+PageTblSelector     equ  (0x0008 << 3) + SA_TIG + SA_RPL0
 ; end of gdt section
 
 [section .idt]
@@ -390,6 +398,46 @@ CODE32_SEGMENT:
     mov esp, BaseOfStack
 
     jmp dword Code32FlatSelector : BaseOfKernel
+
+; set page
+PageSetup:
+    push eax
+    push ecx
+    push edi
+    push es
+
+    mov ax, PageDirSelector
+    mov es, ax
+    mov ecx, 1024
+    mov edi, 0
+    mov eax, PageTblSelector
+    cld
+
+setdir:
+    stosd
+    add eax, 4096
+    loop setdir
+
+    mov ax, PageTblSelector
+    mov es, ax
+    mov ecx, 1024 * 1024
+    mov edi, 0
+    mov eax, PG_P | PG_USU | PG_RWW
+    cld
+
+settbl:
+    stosd
+    add eax, 4096
+    loop settbl
+
+    mov eax, PageDirSelector
+    mov cr3, eax
+
+    pop es
+    pop edi
+    pop ecx
+    pop eax
+    ret
 
 ; default interrupt handler
 DefaultHandlerFunc:

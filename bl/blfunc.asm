@@ -47,41 +47,41 @@ _start:
 LoadTarget:
     mov bp, sp
 
-	mov ax, RootEntryOffset
-	mov cx, RootEntryLength
-	mov bx, [bp + 10] ; Buffer
-	
-	call ReadSector
-	
-	mov si, [bp + 2] ; Target
-	mov cx, [bp + 4] ; TarLen
-	mov dx, 0
-	call FindEntry
-	
-	cmp dx, 0
-	jz finish
-	
-	mov si, bx
-	mov di, EntryItem
-	mov cx, EntryItemLength
-	call MemCpy
+    mov ax, RootEntryOffset
+    mov cx, RootEntryLength
+    mov bx, [bp + 10] ; Buffer
 
-	mov bp, sp
-	mov ax, FatEntryLength
-	mov cx, [BPB_BytsPerSec]
-	mul cx
-	mov bx, [bp + 6]
-	sub bx, ax
-	
-	mov ax, FatEntryOffset
-	mov cx, FatEntryLength
-	call ReadSector
-	
-	mov dx, [EntryItem + 0x1A]
-	; mov si, BaseOfTarget / 0x10
-	mov es, [bp + 8]
-	xor si, si
-	
+    call ReadSector
+
+    mov si, [bp + 2] ; Target
+    mov cx, [bp + 4] ; TarLen
+    mov dx, 0
+    call FindEntry
+
+    cmp dx, 0
+    jz finish
+
+    mov si, bx
+    mov di, EntryItem
+    mov cx, EntryItemLength
+    call MemCpy
+
+    mov bp, sp
+    mov ax, FatEntryLength
+    mov cx, [BPB_BytsPerSec]
+    mul cx
+    mov bx, [bp + 6]
+    sub bx, ax
+
+    mov ax, FatEntryOffset
+    mov cx, FatEntryLength
+    call ReadSector
+
+    mov dx, [EntryItem + 0x1A]
+    ; mov si, BaseOfTarget / 0x10
+    mov es, [bp + 8]
+    xor si, si
+
 loading:
     mov ax, dx
     add ax, 31
