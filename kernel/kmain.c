@@ -26,9 +26,15 @@ void KMain()
     PrintChar('\n');
 
     InitAppModule();
+    PrintString("init app module\n");
     InitTaskModule();
+    PrintString("init task module\n");
     InitInterruptModule();
+    PrintString("init int module\n");
+
     PageConfig();
+    PrintString("init page module\n");
+
     LaunchTask();
     while (1);
 }

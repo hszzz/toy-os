@@ -36,7 +36,7 @@ int GetDescValue(Descriptor* desc, uint* base, uint* limit, ushort* attr)
 
 void PageConfig()
 {
-    uint* base = (uint*)PageDirBase;
+    uint* base = (void*)PageDirBase;
     uint index = 0x1F000 / 0x1000 - 1;
 
     for (int i=0; i<=index; ++i)
