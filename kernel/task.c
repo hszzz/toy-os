@@ -21,7 +21,9 @@ typedef struct QueueHead Queue;
 #define MAX_RUNNING_NUM 2
 #define MAX_READY_NUM (MAX_TASK_NUM - MAX_RUNNING_NUM)
 
-static struct TaskNode TaskQueueBuffer[MAX_TASK_NUM];
+// static struct TaskNode TaskQueueBuffer[MAX_TASK_NUM];
+static struct TaskNode* TaskQueueBuffer = NULL;
+
 static Queue gFreeTasks     = {0};
 static Queue gReadyTasks    = {0};
 static Queue gRunningTasks  = {0};
@@ -34,9 +36,9 @@ static uint gAppToRunIndex = 0;
 static ushort PID[MAX_PID] = {0};
 
 // idle task
-static struct TaskNode gTaskIdleNode = {0};
+static struct TaskNode* gTaskIdleNode = NULL;
 // init task
-static struct TaskNode gTaskInitNode = {0};
+static struct TaskNode* gTaskInitNode = NULL;
 
 static void TaskEntry()
 {
@@ -104,6 +106,8 @@ static void InitTask(Task* t, const char* name, void(*entry)(), ushort pid, usho
 
 static void InitTaskTss(volatile Task* t)
 {
+    t->current++;
+
     gTSS.ss0 = GDT_DATA32_FLAT_SELECTOR;
     gTSS.esp0 = (uint)&t->rv + sizeof(t->rv);
     gTSS.iomb = sizeof(TSS);
@@ -153,11 +157,11 @@ static void CheckRunningTask()
 {
     if (QueueIsEmpty(&gRunningTasks))
     {
-        QueuePush(&gRunningTasks, &gTaskIdleNode.head);
+        QueuePush(&gRunningTasks, &gTaskIdleNode->head);
     }
     else if (QueueLength(&gRunningTasks) > 1)
     {
-        if (QueueFront(&gRunningTasks) == &gTaskIdleNode.head)
+        if (QueueFront(&gRunningTasks) == &gTaskIdleNode->head)
         {
             QueuePop(&gRunningTasks);
         }
@@ -188,7 +192,7 @@ static void RunningToReady()
     if (QueueLength(&gRunningTasks) > 0)
     {
         struct TaskNode *task = QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head);
-        if (task != &gTaskIdleNode) {
+        if (task != gTaskIdleNode) {
             if (task->task.current == task->task.total)
             {
                 QueuePop(&gRunningTasks);
@@ -200,6 +204,11 @@ static void RunningToReady()
 
 void InitTaskModule()
 {
+    TaskQueueBuffer = (void*)0x40000;
+
+    gTaskIdleNode = (void*)(TaskQueueBuffer + MAX_TASK_NUM);
+    gTaskInitNode = (void*)(TaskQueueBuffer + MAX_TASK_NUM + 1);
+
     GetAppInfo = (void*)(*((uint*)GetAppInfoEntry));
     GetAppNum = (void*)(*((uint*)GetAppNumEntry));
 
@@ -216,10 +225,10 @@ void InitTaskModule()
     SetDescValue(&gGdtInfo.entry[GDT_TASK_TSS_INDEX], (uint)&gTSS, sizeof(gTSS) - 1, DA_386TSS + DA_DPL0);
 
     // idle task
-    InitTask(&gTaskIdleNode.task, "IDLE", TaskIdle, 0, 0);
+    InitTask(&gTaskIdleNode->task, "IDLE", TaskIdle, 0, 0);
     PID[0] = 1;
     // init task
-    InitTask(&gTaskInitNode.task, "INIT", TaskInit, 1, 0);
+    InitTask(&gTaskInitNode->task, "INIT", TaskInit, 1, 0);
     PID[1] = 1;
 
     ReadyToRunning();
@@ -230,6 +239,7 @@ void LaunchTask()
 {
     gTaskAddr = &QueueEntry(QueueFront(&gRunningTasks), struct TaskNode, head)->task;
     InitTaskTss(gTaskAddr);
+    PrintString("before run task");
     RunTask(gTaskAddr);
 }
 
