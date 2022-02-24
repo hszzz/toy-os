@@ -311,6 +311,18 @@ RunTask:
     popad
 
     add esp, 4
+
+    mov dx, MASTER_IMR_PORT
+    in ax, dx
+    %rep 5
+    nop
+    %endrep
+    and ax, 0xFE
+    out dx, al
+    mov eax, cr0
+    ;or  eax, 0x80000000
+    mov cr0, eax
+
     iret
 
 ; void LoadTask(Task*);
@@ -397,6 +409,8 @@ CODE32_SEGMENT:
     mov ss, ax
     mov esp, BaseOfStack
 
+    call PageSetup
+
     jmp dword Code32FlatSelector : BaseOfKernel
 
 ; set page
@@ -410,7 +424,7 @@ PageSetup:
     mov es, ax
     mov ecx, 1024
     mov edi, 0
-    mov eax, PageTblSelector
+    mov eax, PageTblBase | PG_P | PG_USU | PG_RWW
     cld
 
 setdir:
@@ -430,7 +444,7 @@ settbl:
     add eax, 4096
     loop settbl
 
-    mov eax, PageDirSelector
+    mov eax, PageDirBase
     mov cr3, eax
 
     pop es
