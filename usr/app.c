@@ -60,9 +60,9 @@ void TaskA()
 
     PrintString("Task A: ");
 
-    uint* p = (uint*)0x1000;
-    *p = 1123123;
-    while (1);
+    // uint* p = (uint*)0xE000;
+    // *p = 1000;
+    // while (1);
 
     while (i<10)
     {
