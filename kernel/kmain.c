@@ -32,7 +32,7 @@ void KMain()
     InitInterruptModule();
     PrintString("init int module\n");
 
-    PageConfig();
+    // PageConfig();
     PrintString("init page module\n");
 
     LaunchTask();

@@ -320,7 +320,7 @@ RunTask:
     and ax, 0xFE
     out dx, al
     mov eax, cr0
-    ;or  eax, 0x80000000
+    or  eax, 0x80000000
     mov cr0, eax
 
     iret
